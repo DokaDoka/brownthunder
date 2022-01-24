@@ -60,7 +60,7 @@ Config.modes = {
 		},
 		targets = {
 			{
-				models = {'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'},
+				models = {{'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'}},
 			},
 			'repeat',
 			'repeat',
