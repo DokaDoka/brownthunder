@@ -185,7 +185,7 @@ CreateThread(function()
 			if next(currentTargets.peds) then				
 				local kills = stats.kills
 				for k, v in pairs(currentTargets.peds) do
-					if DoesEntityExist(v) and IsEntityDead(v) then
+					if DoesEntityExist(v) and IsPedDeadOrDying(v) then
 						currentTargets.peds[k] = nil
 						stats.kills += 1
 					elseif not IsPedInAnyVehicle(v) then
