@@ -73,6 +73,7 @@ function spawnTarget(vehicle, coords, previousVehicle)
 		SetPedArmour(ped, mode.peds.armour)
 
 		SetPedRelationshipGroupHash(ped, 'Targets')
+		SetPedConfigFlag(ped, 140, false)
 		currentTargets.peds[#currentTargets.peds + 1] = ped
 		entities[#entities + 1] = ped
 
