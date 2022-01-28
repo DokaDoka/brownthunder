@@ -254,34 +254,35 @@ function spawnVehicle(name, coords, set)
 	local ped = PlayerPedId()
 	local model = lib.requestModel(name, 5000)
 	if model then
-		local velocity, fVec
-		local vec = coords and coords.xyz or GetEntityCoords(ped)
-		local heading = coords and coords.w or GetEntityHeading(ped)
-
-		local oldVeh = GetVehiclePedIsIn(ped)
-		if oldVeh then
-			velocity = GetEntityVelocity(oldVeh)
-			fVec = GetEntityForwardVector(oldVeh)
-			if set then
+		local oldVeh, oldVehCoords, oldVehHeading, velocity, forwardVelocity, rotation
+		if set then
+			oldVeh = GetVehiclePedIsIn(ped)
+			if oldVeh ~= 0 then
+				oldVehCoords = GetEntityCoords(oldVeh)
+				oldVehHeading = GetEntityHeading(oldVeh)
+				velocity = GetEntityVelocity(oldVeh)
+				local forwardVector = GetEntityForwardVector(oldVeh)
+				forwardVelocity = #(forwardVector * velocity)
+				rotation = GetEntityRotation(oldVeh)
 				DeleteEntity(oldVeh)
 			end
 		end
-		local vehicle = CreateVehicle(model, vec, heading, true, false)
+
+		local vector = coords and coords.xyz or oldVehCoords or GetEntityCoords(ped)
+		local heading = coords and coords.w or oldVehHeading or GetEntityHeading(ped)
+
+		RequestCollisionAtCoord(vector)
+
+		local vehicle = CreateVehicle(model, vector, heading, true, false)
 		SetModelAsNoLongerNeeded(model)
 
-		RequestCollisionAtCoord(vec)
-		-- repeat Wait(0) until HasCollisionLoadedAroundEntity(vehicle)
-
 		if set then
-			if oldVeh then
-				if #velocity > 0.1 then
-					local fVel = fVec * velocity
-					local lVel = fVec / velocity
-					SetEntityVelocity(vehicle, lVel)
-					if fVel.x > 0 and fVel.y > 0 and fVel.z > 0 then
-						SetVehicleForwardSpeed(vehicle, #fVel)
-					end
+			if oldVeh ~= 0 then
+				if forwardVelocity > 0 then
+					SetVehicleForwardSpeed(vehicle, forwardVelocity)
 				end
+				SetEntityVelocity(vehicle, velocity)
+				SetEntityRotation(vehicle, rotation)
 			end
 			SetVehicleHasBeenOwnedByPlayer(vehicle, true)
 			SetVehicleNeedsToBeHotwired(vehicle, false)
