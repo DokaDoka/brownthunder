@@ -280,6 +280,23 @@ Config.modes = {
 		},
 		getTargets = Config.functions.getTargetsCopy,
 	},
+	{
+		name = 'Military Convoy',
+		structure = 'Escalation',
+		description = 'A random assortment of military vehicles',
+		peds = {
+			models = Config.peds.military,
+			weapons = Config.weapons.military,
+		},
+		targets = {
+			{
+				models = {
+					{'apc', 'barracks', 'barracks2', 'barrage', 'crusader', 'dune3', 'halftrack', 'manchez2', 'rhino', 'squaddie', 'verus', 'vetir', 'winky'}
+				},
+			},
+		},
+		getTargets = Config.functions.getTargetsRepeat,
+	},
 }
 
 Config.weapons = {
