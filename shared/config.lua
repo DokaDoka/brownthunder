@@ -218,6 +218,7 @@ Config.defaultMode = {
 Config.modes = {
 	{
 		name = 'Brown Thunder',
+		structure = 'Static',
 		description = 'Hunt a triplet of random targets from an attack helicopter',
 		targets = {
 			{
@@ -230,6 +231,7 @@ Config.modes = {
 	},
 	{
 		name = 'Motorcade',
+		structure = 'Static',
 		description = 'Hunt 3 armoured targets in an emergency vehicle',
 		vehicleModels = {{}},
 		vehicleOptions = {{'Restricted'}},
@@ -248,6 +250,7 @@ Config.modes = {
 	},
 	{
 		name = 'Random',
+		structure = 'Static',
 		description = 'New vehicle and 3 random targets every round',
 		vehicleModels = {
 			{'hunter', 'savage', 'buzzard', 'rhino', 'khanjali', 'ruiner2'},
@@ -264,6 +267,7 @@ Config.modes = {
 	},
 	{
 		name = 'Rhino Hunting',
+		structure = 'Escalation',
 		description = 'Exactly what it sounds like, be warned',
 		peds = {
 			models = Config.peds.military,
