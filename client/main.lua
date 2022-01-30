@@ -13,14 +13,6 @@ local stats = {
 	level = 0
 }
 
-local groups = {'Targets'}
-for i = 1, #groups do
-	local group = groups[i]
-	if not DoesRelationshipGroupExist(group) then
-		AddRelationshipGroup(group)
-	end
-end
-
 function getSpawnPoint(coords, vector)
 	local plyPed, space, retrieval, outPosition, outHeading = PlayerPedId(), 2
 	while not retrieval do
@@ -72,8 +64,8 @@ function spawnTarget(vehicle, coords, previousVehicle)
 
 		SetPedArmour(ped, mode.peds.armour)
 
-		SetPedRelationshipGroupHash(ped, 'Targets')
-		SetPedConfigFlag(ped, 140, false)
+		SetPedRelationshipGroupHash(ped, `PRISONER`)
+
 		currentTargets.peds[#currentTargets.peds + 1] = ped
 		entities[#entities + 1] = ped
 
@@ -87,19 +79,12 @@ function spawnTarget(vehicle, coords, previousVehicle)
 	if not previousVehicle then
 		TaskVehicleDriveWander(driver, vehicle, Config.defaultSpeed, 956)
 		SetTaskVehicleChaseBehaviorFlag(driver, 32, true)
-		-- SetBlockingOfNonTemporaryEvents(driver, true)
 	else
 		TaskVehicleEscort(driver, vehicle, previousVehicle, -1, Config.defaultSpeed, 956, 10.0, 0, 5.0)
 		SetTaskVehicleChaseBehaviorFlag(driver, 32, true)
-		-- SetBlockingOfNonTemporaryEvents(driver, true)
 	end
 	return vehicle, GetEntityForwardVector(vehicle)
 end
-
---[[
-	TaskSmartFleePed
---]]
-
 
 RegisterNetEvent('brownThunder:spawnVehicle', function(vehicle)
 	spawnVehicle(vehicle.model, false, true)
@@ -174,7 +159,16 @@ RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, target
 			GiveWeaponToPed(plyPed, joaat(k), 1000, false, false)
 		end
 	end
-	perRound()
+
+	SetRelationshipGroupDontAffectWantedLevel(`PRISONER`, false)
+	SetRelationshipBetweenGroups(5, `PRISONER`, `COP`)
+	SetRelationshipBetweenGroups(5, `COP`, `PRISONER`)
+	SetRelationshipBetweenGroups(5, `PRISONER`, `ARMY`)
+	SetRelationshipBetweenGroups(5, `ARMY`, `PRISONER`)
+	SetRelationshipBetweenGroups(5, `PRISONER`, `SECURITY_GUARD`)
+	SetRelationshipBetweenGroups(5, `SECURITY_GUARD`, `PRISONER`)
+	SetRelationshipBetweenGroups(5, `PRISONER`, `PRIVATE_SECURITY`)
+	SetRelationshipBetweenGroups(5, `PRIVATE_SECURITY`, `PRISONER`)
 	getModels(nextTargets)
 end)
 
@@ -229,9 +223,6 @@ CreateThread(function()
 		if activeMode then
 			local plyPed = PlayerPedId()
 			local vehicle = GetVehiclePedIsIn(plyPed)
-			local plyGroupHash = GetPedRelationshipGroupHash(plyPed)
-			SetRelationshipBetweenGroups(5, plyGroupHash, 'Targets')
-			SetRelationshipBetweenGroups(5, 'Targets', plyGroupHash)
 
 			if mode.playerHealth == 'invincible' then
 				SetEntityInvincible(plyPed, true)
