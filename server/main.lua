@@ -62,6 +62,17 @@ for i = 1, #Config.modes do
 			mode.targets[j] = table.deepclone(mode.targets[j - 1])
 		end
 	end
+	setmetatable(mode, {__index = Config.defaultMode})
+	for k, v in pairs(mode) do
+		if type(v) == 'table' then
+			setmetatable(mode[k], {__index = Config.defaultMode[k]})
+			for k2, v2 in pairs(mode) do
+				if type(v2) == 'table' then
+					setmetatable(mode[k2], {__index = Config.defaultMode[k2]})
+				end
+			end
+		end
+	end
 end
 
 GlobalState['Modes'] = Config.modes
@@ -80,32 +91,9 @@ function getVehicle(vehicle)
 	end
 end
 
-function getTargets(targets, round)
-	local vehicles = {}
-	for i = 1, #targets do
-		local target = targets[i]
-		if type(target) == 'table' then
-			if not target.models[round] then
-				if #target.models > 1 then
-					round = round % #target.models
-					if round == 0 then
-						round = #target.models
-					end
-				else
-					round = 1
-				end
-			end
-			vehicles[i] = getVehicle(target.models[round][math.random(#target.models[round])])
-		elseif target == 'copy' then
-			vehicles[i] = table.deepclone(vehicles[i - 1])
-		end
-	end
-	return vehicles
-end
-
 RegisterServerEvent('brownThunder:nextRound', function(modeNumber, round)
 	local plyState = Player(source).state
-	local mode = GlobalState['Modes'][modeNumber or plyState.mode]
+	local mode = Config.modes[modeNumber or plyState.mode]
 	local round = round or plyState.round + 1
 	local vehicle = false
 
@@ -123,8 +111,8 @@ RegisterServerEvent('brownThunder:nextRound', function(modeNumber, round)
 		end
 	end
 
-	local targets = plyState.nextTargets or getTargets(mode.targets, round)
-	plyState.nextTargets = getTargets(mode.targets, round + 1)
+	local targets = plyState.nextTargets or mode.getTargets(mode.targets, round)
+	plyState.nextTargets = mode.getTargets(mode.targets, round + 1)
 	plyState.round = round
 	plyState.mode = modeNumber or plyState.mode
 

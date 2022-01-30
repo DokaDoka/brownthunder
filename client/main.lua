@@ -4,6 +4,22 @@ local currentTargets = {
 	peds = {}
 }
 
+Modes = GlobalState['Modes']
+for i = 1, #Modes do
+	local mode = Modes[i]
+	setmetatable(mode, {__index = Config.defaultMode})
+	for k, v in pairs(mode) do
+		if type(v) == 'table' then
+			setmetatable(mode[k], {__index = Config.defaultMode[k]})
+			for k2, v2 in pairs(mode) do
+				if type(v2) == 'table' then
+					setmetatable(mode[k2], {__index = Config.defaultMode[k2]})
+				end
+			end
+		end
+	end
+end
+
 local mode
 local vectors = {}
 local entities = {}
@@ -90,32 +106,6 @@ RegisterNetEvent('brownThunder:spawnVehicle', function(vehicle)
 	spawnVehicle(vehicle.model, false, true)
 end)
 
-function perRound()
-	activeMode = true
-	local plyPed = PlayerPedId()
-
-	if mode.playerHealth == 'standard' then
-		SetEntityHealth(plyPed, 200)
-	elseif mode.playerHealth == 'armour' then
-		SetEntityHealth(plyPed, 200)
-		SetPedArmour(plyPed, 100)
-	end
-
-	if mode.vehicleHealth == 'standard' then
-		local vehicle = GetVehiclePedIsIn(plyPed)
-		if vehicle ~= 0 then
-			SetEntityHealth(vehicle, GetEntityHealth(vehicle) + 1000)
-			SetVehicleEngineHealth(vehicle, GetVehicleEngineHealth(vehicle) + 1000)
-			SetVehiclePetrolTankHealth(vehicle, GetVehiclePetrolTankHealth(vehicle) + 1000)
-			SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + 1000)
-			SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + 1000)
-			SetHeliMainRotorHealth(vehicle, GetHeliMainRotorHealth(vehicle) + 1000)
-			SetHeliTailRotorHealth(vehicle, GetHeliTailRotorHealth(vehicle) + 1000)
-			SetVehicleTyresCanBurst(vehicle, false)
-		end
-	end
-end
-
 function endRound(delete)
 	activeMode = false
 	currentTargets = {vehicles = {}, peds = {}}
@@ -138,8 +128,8 @@ function endMode()
 end
 
 RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, targets, nextTargets)
+	mode = Modes[modeNumber]
 	sendLocal({'^1BROWN THUNDER', 'starting level ' .. stats.level + 1})
-	mode = GlobalState['Modes'][modeNumber]
 	getModels(targets)
 	if vehicle then
 		spawnVehicle(vehicle.model, false, true)
@@ -169,6 +159,10 @@ RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, target
 	SetRelationshipBetweenGroups(5, `SECURITY_GUARD`, `PRISONER`)
 	SetRelationshipBetweenGroups(5, `PRISONER`, `PRIVATE_SECURITY`)
 	SetRelationshipBetweenGroups(5, `PRIVATE_SECURITY`, `PRISONER`)
+
+	activeMode = true
+	mode.onRoundStart(mode)
+
 	getModels(nextTargets)
 end)
 

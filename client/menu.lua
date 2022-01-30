@@ -1,5 +1,5 @@
 local tabs = {
-	modes = GlobalState['Modes']
+	modes = Modes
 }
 
 local controlWidth = 0.3
@@ -16,7 +16,7 @@ RegisterCommand('btMenu', function(source, args, rawCommand)
 	local tab = 'modes'
 	local page = 1
 	local entries = tabs[tab]
-	local entriesPerPage = 3
+	local entriesPerPage = 4
 	local pages = math.ceil(#entries / entriesPerPage)
 	local firstEntry
 	local lastEntry
@@ -36,7 +36,7 @@ RegisterCommand('btMenu', function(source, args, rawCommand)
 
 		vein:beginRow()
 			if vein:button('Modes') then
-				tab = modes
+				tab = 'modes'
 			end
         vein:endRow()
 

@@ -119,23 +119,106 @@ Config.weapons = {
 	bodyguard = {
 		`WEAPON_APPISTOL`,
 		`WEAPON_CARBINERIFLE`,
-	}
+	},
+	military = {
+		`WEAPON_MICROSMG`,
+		`WEAPON_MILITARYRIFLE`,
+	},
+}
+
+Config.functions = {
+	getTargetsRepeat = function(targets, round)
+		local vehicles = {}
+		local target = targets[1]
+		for i = 1, round do
+			vehicles[i] = getVehicle(target.models[1][math.random(#target.models[1])])
+		end
+		return vehicles
+	end,
+	getTargetsCopy = function(targets, round)
+		local vehicles = {getVehicle(targets[1].models[1][math.random(#targets[1].models[1])])}
+		if round > 1 then
+			for i = 2, round do
+				vehicles[i] = table.deepclone(vehicles[i - 1])
+			end
+		end
+		return vehicles
+	end,
+}
+
+Config.defaultMode = {
+	name = 'No Mode Name Set',
+	description = 'No Mode Description Set',
+	vehicleModels = {{'hunter', 'savage', 'buzzard'}},
+	playerHealth = 'standard',
+	vehicleHealth = 'standard',
+	weapons = false,
+	peds = {
+		models = Config.peds.prisoners,
+		number = false,
+		armour = 100,
+		weapons = Config.weapons.default,
+	},
+	targets = {
+		{
+			models = {{'random'}},
+		},
+	},
+	onRoundStart = function(mode)
+		PlaySoundFrontend(-1, "Checkpoint_Hit", "GTAO_FM_Events_Soundset", 0)
+		local plyPed = PlayerPedId()
+
+		if mode.playerHealth == 'standard' then
+			SetEntityHealth(plyPed, 200)
+		elseif mode.playerHealth == 'armour' then
+			SetEntityHealth(plyPed, 200)
+			SetPedArmour(plyPed, 100)
+		end
+	
+		if mode.vehicleHealth == 'standard' then
+			local vehicle = GetVehiclePedIsIn(plyPed)
+			if vehicle ~= 0 then
+				SetEntityHealth(vehicle, GetEntityHealth(vehicle) + 1000)
+				SetVehicleEngineHealth(vehicle, GetVehicleEngineHealth(vehicle) + 1000)
+				SetVehiclePetrolTankHealth(vehicle, GetVehiclePetrolTankHealth(vehicle) + 1000)
+				SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + 1000)
+				SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + 1000)
+				SetHeliMainRotorHealth(vehicle, GetHeliMainRotorHealth(vehicle) + 1000)
+				SetHeliTailRotorHealth(vehicle, GetHeliTailRotorHealth(vehicle) + 1000)
+				SetVehicleTyresCanBurst(vehicle, false)
+			end
+		end
+	end,
+	onKill = function()
+		PlaySoundFrontend(-1, "Bomb_Disarmed", "GTAO_Speed_Convoy_Soundset", 0)
+	end,
+	getTargets = function(targets, round)
+		local vehicles = {}
+		for i = 1, #targets do
+			local round = round
+			local target = targets[i]
+			if type(target) == 'table' then
+				if target.models[round] ~= false then
+					round = round % #target.models
+					if round == 0 then
+						round = #target.models
+					end
+				end
+				if target.models[round] then
+					vehicles[i] = getVehicle(target.models[round][math.random(#target.models[round])])
+				end
+			elseif target == 'copy' then
+				vehicles[i] = table.deepclone(vehicles[i - 1])
+			end
+		end
+		return vehicles
+	end,
 }
 
 Config.modes = {
 	{
 		name = 'Brown Thunder',
 		description = 'Hunt a triplet of random targets from an attack helicopter',
-		vehicleModels = {{'hunter', 'savage', 'buzzard'}},
-		playerHealth = 'standard',
-		vehicleHealth = 'standard',
-		weapons = false,
-		peds = {
-			models = Config.peds.prisoners,
-			number = false,
-			armour = 100,
-			weapons = Config.weapons.default,
-		},
 		targets = {
 			{
 				models = {{}},
@@ -151,12 +234,8 @@ Config.modes = {
 		vehicleModels = {{}},
 		vehicleOptions = {{'Restricted'}},
 		playerHealth = 'armour',
-		vehicleHealth = 'standard',
-		weapons = true,
 		peds = {
 			models = Config.peds.bodyguard,
-			number = false,
-			armour = 100,
 			weapons = Config.weapons.bodyguard,
 		},
 		targets = {
@@ -174,15 +253,6 @@ Config.modes = {
 			{'hunter', 'savage', 'buzzard', 'rhino', 'khanjali', 'ruiner2'},
 			{'hunter', 'savage', 'buzzard', 'rhino', 'khanjali', 'ruiner2'},
 		},
-		playerHealth = 'standard',
-		vehicleHealth = 'standard',
-		weapons = false,
-		peds = {
-			models = Config.peds.default,
-			number = false,
-			armour = 100,
-			weapons = Config.weapons.default,
-		},
 		targets = {
 			{
 				models = {{}},
@@ -195,41 +265,16 @@ Config.modes = {
 	{
 		name = 'Rhino Hunting',
 		description = 'Exactly what it sounds like, be warned',
-		vehicleModels = {
-			{'hunter', 'savage', 'buzzard'},
-			false,
-			false,
-		},
-		playerHealth = 'standard',
-		vehicleHealth = 'standard',
-		weapons = false,
 		peds = {
 			models = Config.peds.military,
-			number = false,
-			armour = 100,
-			weapons = Config.weapons.default,
+			weapons = Config.weapons.military,
 		},
 		targets = {
 			{
-				models = {
-					{'rhino'}
-				},
-			},
-			{
-				models = {
-					false,
-					{'rhino'},
-					{'rhino'},
-				},
-			},
-			{
-				models = {
-					false,
-					false,
-					{'rhino'},
-				},
+				models = {{'rhino'}},
 			},
 		},
+		getTargets = Config.functions.getTargetsCopy,
 	},
 }
 
