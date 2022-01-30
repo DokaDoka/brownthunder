@@ -82,7 +82,6 @@ function spawnTarget(vehicle, coords, previousVehicle)
 		end
 	end
 
-	currentTargets.vehicles[#currentTargets.vehicles + 1] = vehicle
 	entities[#entities + 1] = vehicle
 
 	if not previousVehicle then
@@ -185,28 +184,29 @@ CreateThread(function()
 		if activeMode then
 			if next(currentTargets.peds) then				
 				local kills = stats.kills
+				currentTargets.vehicles = {}
 				for k, v in pairs(currentTargets.peds) do
-					if DoesEntityExist(v) and IsPedDeadOrDying(v) then
+					if IsPedDeadOrDying(v) then
 						currentTargets.peds[k] = nil
 						stats.kills += 1
-					elseif not IsPedInAnyVehicle(v) then
-						local pedPos = GetEntityCoords(v)
-						DrawMarker(2, pedPos.xy, pedPos.z + 1.5, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 0, 0, 100, true, true, 2, false, false, false, false)
-					end
-				end
-				for k, v in pairs(currentTargets.vehicles) do
-					if DoesEntityExist(v) and IsEntityDead(v) then
-						currentTargets.vehicles[k] = nil
-					elseif not IsVehicleSeatFree(v, -1) or GetVehicleNumberOfPassengers(v) > 0 then
-						local model = GetEntityModel(v)
-						local offset = vehicleOffset[model]
-						if not offset then
-							local minVec, maxVec = GetModelDimensions(model)
-							offset = vec(0, 0, math.max(minVec.z, maxVec.z) + 1)
-							vehicleOffset[model] = offset
+						mode.onKill()
+					else
+						local vehicle = GetVehiclePedIsIn(v)
+						if vehicle == 0 then
+							local pedPos = GetEntityCoords(v)
+							DrawMarker(2, pedPos.xy, pedPos.z + 1.5, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 0, 0, 100, true, true, 2, false, false, false, false)
+						elseif not currentTargets.vehicles[vehicle] then
+							currentTargets.vehicles[vehicle] = true
+							local model = GetEntityModel(vehicle)
+							local offset = vehicleOffset[model]
+							if not offset then
+								local minVec, maxVec = GetModelDimensions(model)
+								offset = vec(0, 0, math.max(minVec.z, maxVec.z) + 1)
+								vehicleOffset[model] = offset
+							end
+							local vehPos = GetEntityCoords(vehicle)
+							DrawMarker(2, vehPos + offset, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 1.0, 1.0, 1.0, 255, 0, 0, 100, true, true, 2, false, false, false, false)
 						end
-						local vehPos = GetEntityCoords(v)
-						DrawMarker(2, vehPos + offset, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 1.0, 1.0, 1.0, 255, 0, 0, 100, true, true, 2, false, false, false, false)
 					end
 				end
 				if stats.kills ~= kills then
