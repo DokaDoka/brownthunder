@@ -340,6 +340,22 @@ Config.modes = {
 
 		getTargets = 'escalation',
 	},
+	{
+		name = 'Merryweather Convoy',
+		description = 'A random assortment of paramilitary vehicles',
+
+		pedModels = 'merryweather',
+		pedWeapons = 'military',
+
+		targets = {
+			{
+				'merryweather',
+				'repeat',
+			},
+		},
+
+		getTargets = 'escalation',
+	},
 }
 
 textModes = {}
