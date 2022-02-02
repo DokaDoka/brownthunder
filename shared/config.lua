@@ -1,248 +1,291 @@
+local table = import 'table'
+
 Config = {
-	defaultVehicle = 'ruiner2',
-	defaultTarget = 'kuruma2',
-	defaultSpeed = 50.0,
-}
-
-Config.peds = {
-	default = {
-		`s_m_m_mariachi_01`,
-	},
-	arm = {
-		`g_m_m_armboss_01`,
-		`g_m_m_armgoon_01`,
-		`g_m_m_armlieut_01`,
-		`g_m_y_armgoon_02`,
-	},
-	ballas = {
-		`csb_ballasog`,
-		`g_f_y_ballas_01`,
-		`g_m_y_ballaeast_01`,
-		`g_m_y_ballaorig_01`,
-		`g_m_y_ballasout_01`,
-	},
-	chinese = {
-		`csb_chin_goon`,
-		`g_m_m_chiboss_01`,
-		`g_m_m_chicold_01`,
-		`g_m_m_chigoon_01`,
-		`g_m_m_chigoon_02`,
-	},
-	families = {
-		`g_f_y_families_01`,
-		`g_m_y_famca_01`,
-		`g_m_y_famdnf_01`,
-		`g_m_y_famfor_01`,
-	},
-	korean = {
-		`g_m_m_korboss_01`,
-		`g_m_y_korean_01`,
-		`g_m_y_korean_02`,
-		`g_m_y_korlieut_01`,
-	},
-	lost = {
-		`g_f_y_lost_01`,
-		`g_m_y_lost_01`,
-		`g_m_y_lost_02`,
-		`g_m_y_lost_03`,
-	},
-	mexican = {
-		`a_m_y_mexthug_01`,
-		`g_m_m_mexboss_01`,
-		`g_m_m_mexboss_02`,
-		`g_m_y_mexgang_01`,
-		`g_m_y_mexgoon_01`,
-		`g_m_y_mexgoon_02`,
-		`g_m_y_mexgoon_03`,
-	},
-	business = {
-		`a_f_m_business_02`,
-		`a_f_y_business_01`,
-		`a_f_y_business_02`,
-		`a_f_y_business_03`,
-		`a_f_y_business_04`,
-		`a_m_m_business_01`,
-		`a_m_y_business_01`,
-		`a_m_y_business_02`,
-		`a_m_y_business_03`,
-	},
-	cult = {
-		`a_m_m_acult_01`,
-		`a_m_o_acult_01`,
-		`a_m_o_acult_02`,
-		`a_m_y_acult_01`,
-		`a_m_y_acult_02`,
-	},
-	epsilon = {
-		`a_f_y_epsilon_01`,
-		`a_m_y_epsilon_01`,
-		`a_m_y_epsilon_02`,
-	},
-	bodyguard = {
-		`s_m_m_highsec_01`,
-		`s_m_m_highsec_02`,
-		`s_m_y_clubbar_01`,
-		`s_m_y_devinsec_01`,
-		`s_m_y_doorman_01`,
-		`s_m_y_casino_01`,
-		`s_m_y_westsec_01`,
-		`u_m_m_jewelsec_01`,
-		`u_m_m_jewelthief`,
-	},
-	military = {
-		`s_m_m_marine_01`,
-		`s_m_m_marine_02`,
-		`s_m_y_armymech_01`,
-		`s_m_y_marine_01`,
-		`s_m_y_marine_02`,
-		`s_m_y_marine_03`,
-	},
-	merryweather = {
-		`s_m_y_blackops_01`,
-		`s_m_y_blackops_02`,
-		`s_m_y_blackops_03`,
-	},
-	prisoners = {
-		`s_m_y_prismuscl_01`,
-		`s_m_y_prisoner_01`,
-		`u_m_y_prisoner_01`,
+	vehicles = {
+		['copy'] = 'copy',
+		['repeat'] = 'repeat',
+		['attackHelicopters'] = {'hunter', 'savage', 'buzzard'},
+		['emergency'] = {'ambulance', 'fbi', 'fbi2', 'firetruk', 'lguard', 'pbus', 'police1', 'police2', 'police3', 'police4', 'policeb', 'policeold1', 'policeold2', 'policet', 'pranger', 'riot', 'riot2', 'sheriff', 'sheriff2'},
+		['lightlyArmoured'] = {'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'},
+		['attack'] = {'hunter', 'savage', 'buzzard', 'rhino', 'khanjali', 'ruiner2'},
+		['military'] = {'apc', 'barracks', 'barracks2', 'barrage', 'crusader', 'dune3', 'halftrack', 'manchez2', 'rhino', 'squaddie', 'verus', 'vetir', 'winky'},
+		['merryweather'] = {'boxville5', 'caracara', 'insurgent', 'insurgent2', 'insurgent3', 'menacer', 'mesa3', 'nightshark', 'technical', 'technical2', 'technical3', 'khanjali', 'tampa3'},
+		['ground'] = {build = true, 'Compact', 'Sedan', 'SUV', 'Utility', 'Coupe', 'Muscle', 'Sports Classic', 'Sports', 'Super', 'Motorcycle', 'Off Road', 'Truck', 'Van', 'Open Wheel'},
 	},
 }
 
-Config.weapons = {
-	default = {
-		`WEAPON_MICROSMG`,
-		`WEAPON_ASSAULTRIFLE`,
-		`WEAPON_COMPACTRIFLE`,
-		`WEAPON_SAWNOFFSHOTGUN`,
+local functions = {
+	playerHealth = {
+		['health'] = function()
+			SetEntityHealth(PlayerPedId(), 200)
+		end,
+		['armour'] = function()
+			local plyPed = PlayerPedId()
+			SetEntityHealth(plyPed, GetPedMaxHealth(plyPed))
+			SetPedArmour(plyPed, 100)
+		end,	
 	},
-	bodyguard = {
-		`WEAPON_APPISTOL`,
-		`WEAPON_CARBINERIFLE`,
-	},
-	military = {
-		`WEAPON_MICROSMG`,
-		`WEAPON_MILITARYRIFLE`,
-	},
-}
-
-Config.functions = {
-	getTargetsRepeat = function(targets, round)
-		local vehicles = {}
-		local target = targets[1]
-		for i = 1, round do
-			vehicles[i] = getVehicle(target.models[1][math.random(#target.models[1])])
-		end
-		return vehicles
-	end,
-	getTargetsCopy = function(targets, round)
-		local vehicles = {getVehicle(targets[1].models[1][math.random(#targets[1].models[1])])}
-		if round > 1 then
-			for i = 2, round do
-				vehicles[i] = table.deepclone(vehicles[i - 1])
+	playerWeapons = {
+		['pistol'] = function()
+			GiveWeaponToPed(PlayerPedId(), `WEAPON_APPISTOL`, 1000, false, false)
+		end,
+		['all'] = function()
+			local plyPed = PlayerPedId()
+			for k, v in pairs(Config.weapons) do
+				GiveWeaponToPed(plyPed, joaat(k), 1000, false, false)
 			end
-		end
-		return vehicles
-	end,
-}
-
-Config.defaultMode = {
-	name = 'No Mode Name Set',
-	description = 'No Mode Description Set',
-	vehicleModels = {{'hunter', 'savage', 'buzzard'}},
-	playerHealth = 'standard',
-	vehicleHealth = 'standard',
-	weapons = false,
-	peds = {
-		models = Config.peds.prisoners,
-		number = false,
-		armour = 100,
-		weapons = Config.weapons.default,
+		end,
 	},
-	targets = {
-		{
-			models = {{'random'}},
+	pedModels = {
+		['armenians'] = {
+			`g_m_m_armboss_01`,
+			`g_m_m_armgoon_01`,
+			`g_m_m_armlieut_01`,
+			`g_m_y_armgoon_02`,
+		},
+		['ballas'] = {
+			`csb_ballasog`,
+			`g_f_y_ballas_01`,
+			`g_m_y_ballaeast_01`,
+			`g_m_y_ballaorig_01`,
+			`g_m_y_ballasout_01`,
+		},
+		['bodyguard'] = {
+			`s_m_m_highsec_01`,
+			`s_m_m_highsec_02`,
+			`s_m_y_clubbar_01`,
+			`s_m_y_devinsec_01`,
+			`s_m_y_doorman_01`,
+			`s_m_y_casino_01`,
+			`s_m_y_westsec_01`,
+			`u_m_m_jewelsec_01`,
+			`u_m_m_jewelthief`,
+		},
+		['business'] = {
+			`a_f_m_business_02`,
+			`a_f_y_business_01`,
+			`a_f_y_business_02`,
+			`a_f_y_business_03`,
+			`a_f_y_business_04`,
+			`a_m_m_business_01`,
+			`a_m_y_business_01`,
+			`a_m_y_business_02`,
+			`a_m_y_business_03`,
+		},
+		['cult'] = {
+			`a_m_m_acult_01`,
+			`a_m_o_acult_01`,
+			`a_m_o_acult_02`,
+			`a_m_y_acult_01`,
+			`a_m_y_acult_02`,
+		},
+		['default'] = {
+			`s_m_m_mariachi_01`,
+		},
+		['epsilon'] = {
+			`a_f_y_epsilon_01`,
+			`a_m_y_epsilon_01`,
+			`a_m_y_epsilon_02`,
+		},
+		['families'] = {
+			`g_f_y_families_01`,
+			`g_m_y_famca_01`,
+			`g_m_y_famdnf_01`,
+			`g_m_y_famfor_01`,
+		},
+		['kkangpae'] = {
+			`g_m_m_korboss_01`,
+			`g_m_y_korean_01`,
+			`g_m_y_korean_02`,
+			`g_m_y_korlieut_01`,
+		},
+		['lost'] = {
+			`g_f_y_lost_01`,
+			`g_m_y_lost_01`,
+			`g_m_y_lost_02`,
+			`g_m_y_lost_03`,
+		},
+		['merryweather'] = {
+			`s_m_y_blackops_01`,
+			`s_m_y_blackops_02`,
+			`s_m_y_blackops_03`,
+		},
+		['mexican'] = {
+			`a_m_y_mexthug_01`,
+			`g_m_m_mexboss_01`,
+			`g_m_m_mexboss_02`,
+			`g_m_y_mexgang_01`,
+			`g_m_y_mexgoon_01`,
+			`g_m_y_mexgoon_02`,
+			`g_m_y_mexgoon_03`,
+		},
+		['military'] = {
+			`s_m_m_marine_01`,
+			`s_m_m_marine_02`,
+			`s_m_y_armymech_01`,
+			`s_m_y_marine_01`,
+			`s_m_y_marine_02`,
+			`s_m_y_marine_03`,
+		},
+		['prisoners'] = {
+			`s_m_y_prismuscl_01`,
+			`s_m_y_prisoner_01`,
+			`u_m_y_prisoner_01`,
+		},
+		['triads'] = {
+			`csb_chin_goon`,
+			`g_m_m_chiboss_01`,
+			`g_m_m_chicold_01`,
+			`g_m_m_chigoon_01`,
+			`g_m_m_chigoon_02`,
 		},
 	},
-	onRoundStart = function(mode)
-		PlaySoundFrontend(-1, "Checkpoint_Hit", "GTAO_FM_Events_Soundset", 0)
-		local plyPed = PlayerPedId()
-
-		if mode.playerHealth == 'standard' then
-			SetEntityHealth(plyPed, 200)
-		elseif mode.playerHealth == 'armour' then
-			SetEntityHealth(plyPed, 200)
-			SetPedArmour(plyPed, 100)
-		end
-	
-		if mode.vehicleHealth == 'standard' then
-			local vehicle = GetVehiclePedIsIn(plyPed)
-			if vehicle ~= 0 then
-				SetEntityHealth(vehicle, GetEntityHealth(vehicle) + 1000)
-				SetVehicleEngineHealth(vehicle, GetVehicleEngineHealth(vehicle) + 1000)
-				SetVehiclePetrolTankHealth(vehicle, GetVehiclePetrolTankHealth(vehicle) + 1000)
-				SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + 1000)
-				SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + 1000)
-				SetHeliMainRotorHealth(vehicle, GetHeliMainRotorHealth(vehicle) + 1000)
-				SetHeliTailRotorHealth(vehicle, GetHeliTailRotorHealth(vehicle) + 1000)
-				SetVehicleTyresCanBurst(vehicle, false)
+	pedWeapons = {
+		['bodyguard'] = {
+			`WEAPON_APPISTOL`,
+			`WEAPON_CARBINERIFLE`,
+		},
+		['default'] = {
+			`WEAPON_MICROSMG`,
+			`WEAPON_ASSAULTRIFLE`,
+			`WEAPON_COMPACTRIFLE`,
+			`WEAPON_SAWNOFFSHOTGUN`,
+		},
+		['military'] = {
+			`WEAPON_MICROSMG`,
+			`WEAPON_MILITARYRIFLE`,
+		},
+	},
+	getTargets = {
+		['static'] = function(targets, round)
+			local vehicles = {}
+			for i = 1, #targets do
+				local target = targets[i]
+				if type(target) == 'table' then
+					vehicles[i] = getVehicle(target[1][math.random(#target[1])])
+				elseif target == 'copy' then
+					vehicles[i] = table.deepclone(vehicles[i - 1])
+				end
 			end
-		end
-	end,
-	onKill = function()
-		PlaySoundFrontend(-1, "Bomb_Disarmed", "GTAO_Speed_Convoy_Soundset", 0)
-	end,
-	getTargets = function(targets, round)
-		local vehicles = {}
-		for i = 1, #targets do
-			local round = round
-			local target = targets[i]
-			if type(target) == 'table' then
-				if target.models[round] ~= false then
-					round = round % #target.models
-					if round == 0 then
-						round = #target.models
+			return vehicles
+		end,
+		['cycle'] = function(targets, round)
+			local vehicles = {}
+			for i = 1, #targets do
+				local round = round
+				local target = targets[i]
+				if type(target) == 'table' then
+					if target[round] ~= false then
+						round = round % #target
+						if round == 0 then
+							round = #target
+						end
+					end
+					if target[round] then
+						vehicles[i] = getVehicle(target[round][math.random(#target[round])])
+					end
+				elseif target == 'copy' then
+					vehicles[i] = table.deepclone(vehicles[i - 1])
+				end
+			end
+			return vehicles
+		end,
+		['escalation'] = function(targets, round)
+			local vehicles = {getVehicle(targets[1][1][math.random(#targets[1][1])])}
+			if round > 1 then
+				for i = 2, round do
+					if targets[1][2] == 'copy' then
+						vehicles[i] = table.deepclone(vehicles[i - 1])
+					elseif targets[1][2] == 'repeat' then
+						vehicles[i] = getVehicle(targets[1][1][math.random(#targets[1][1])])
 					end
 				end
-				if target.models[round] then
-					vehicles[i] = getVehicle(target.models[round][math.random(#target.models[round])])
-				end
-			elseif target == 'copy' then
-				vehicles[i] = table.deepclone(vehicles[i - 1])
 			end
-		end
-		return vehicles
-	end,
+			return vehicles
+		end,
+	},
+	onRoundStart = {
+		['default'] = function(mode)
+			PlaySoundFrontend(-1, "Checkpoint_Hit", "GTAO_FM_Events_Soundset", 0)
+
+			mode.playerHealth()
+
+			mode.playerWeapons()
+
+			if mode.extraVehicleHealth ~= 0 then
+				local plyPed = PlayerPedId()
+				local vehicle = GetVehiclePedIsIn(plyPed)
+				if vehicle ~= 0 then
+					local extraHealth = mode.extraVehicleHealth * 10
+					SetEntityHealth(vehicle, GetEntityHealth(vehicle) + extraHealth)
+					SetVehicleEngineHealth(vehicle, GetVehicleEngineHealth(vehicle) + extraHealth)
+					SetVehiclePetrolTankHealth(vehicle, GetVehiclePetrolTankHealth(vehicle) + extraHealth)
+					SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + extraHealth)
+					SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + extraHealth)
+					SetHeliMainRotorHealth(vehicle, GetHeliMainRotorHealth(vehicle) + extraHealth)
+					SetHeliTailRotorHealth(vehicle, GetHeliTailRotorHealth(vehicle) + extraHealth)
+					SetVehicleTyresCanBurst(vehicle, false)
+				end
+			end
+		end,
+	},
+	onKill = {
+		['default'] = function()
+			PlaySoundFrontend(-1, "Bomb_Disarmed", "GTAO_Speed_Convoy_Soundset", 0)
+		end,
+	},
+}
+
+local defaultMode = {
+	name = 'No Mode Name Set',
+	description = 'No Mode Description Set',
+
+	playerHealth = 'armour',
+	playerWeapons = 'pistol',
+
+	vehicle = {'attackHelicopters'},
+	extraVehicleHealth = 100,
+
+	pedModels = 'prisoners',
+	pedWeapons = 'default',
+	pedArmour = 100,
+
+	targets = {
+		{
+			'random',
+		},
+	},
+
+	getTargets = 'static',
+	onRoundStart = 'default',
+	onKill = 'default',
 }
 
 Config.modes = {
 	{
 		name = 'Brown Thunder',
-		structure = 'Static',
 		description = 'Hunt a triplet of random targets from an attack helicopter',
+
 		targets = {
 			{
-				models = {{}},
-				options = {{'Compact', 'Sedan', 'SUV', 'Utility', 'Coupe', 'Muscle', 'Sports Classic', 'Sports', 'Super', 'Motorcycle', 'Off Road', 'Truck', 'Van', 'Open Wheel'}},
+				'ground',
 			},
 			'copy',
 			'copy',
-		},
+		}
 	},
 	{
 		name = 'Motorcade',
-		structure = 'Static',
 		description = 'Hunt 3 armoured targets in an emergency vehicle',
-		vehicleModels = {{}},
-		vehicleOptions = {{'Restricted'}},
-		playerHealth = 'armour',
-		peds = {
-			models = Config.peds.bodyguard,
-			weapons = Config.weapons.bodyguard,
-		},
+
+		vehicle = {'emergency'},
+
+		pedModels = 'bodyguard',
+		pedWeapons = 'bodyguard',
+
 		targets = {
 			{
-				models = {{'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'}},
+				'lightlyArmoured',
 			},
 			'repeat',
 			'repeat',
@@ -250,16 +293,16 @@ Config.modes = {
 	},
 	{
 		name = 'Random',
-		structure = 'Static',
 		description = 'New vehicle and 3 random targets every round',
-		vehicleModels = {
-			{'hunter', 'savage', 'buzzard', 'rhino', 'khanjali', 'ruiner2'},
-			{'hunter', 'savage', 'buzzard', 'rhino', 'khanjali', 'ruiner2'},
+
+		vehicle = {
+			'attack',
+			'attack',
 		},
+
 		targets = {
 			{
-				models = {{}},
-				options = {{'Compact', 'Sedan', 'SUV', 'Utility', 'Coupe', 'Muscle', 'Sports Classic', 'Sports', 'Super', 'Motorcycle', 'Off Road', 'Truck', 'Van', 'Open Wheel'}},
+				'ground',
 			},
 			'repeat',
 			'repeat',
@@ -267,37 +310,56 @@ Config.modes = {
 	},
 	{
 		name = 'Rhino Hunting',
-		structure = 'Escalation',
 		description = 'Exactly what it sounds like, be warned',
-		peds = {
-			models = Config.peds.military,
-			weapons = Config.weapons.military,
-		},
+
+		pedModels = 'military',
+		pedWeapons = 'military',
+
 		targets = {
 			{
-				models = {{'rhino'}},
+				'rhino',
+				'copy',
 			},
 		},
-		getTargets = Config.functions.getTargetsCopy,
+
+		getTargets = 'escalation',
 	},
 	{
 		name = 'Military Convoy',
-		structure = 'Escalation',
 		description = 'A random assortment of military vehicles',
-		peds = {
-			models = Config.peds.military,
-			weapons = Config.weapons.military,
-		},
+
+		pedModels = 'military',
+		pedWeapons = 'military',
+		
 		targets = {
 			{
-				models = {
-					{'apc', 'barracks', 'barracks2', 'barrage', 'crusader', 'dune3', 'halftrack', 'manchez2', 'rhino', 'squaddie', 'verus', 'vetir', 'winky'}
-				},
+				'military',
+				'repeat',
 			},
 		},
-		getTargets = Config.functions.getTargetsRepeat,
+
+		getTargets = 'escalation',
 	},
 }
+
+textModes = {}
+for i = 1, #Config.modes do
+	setmetatable(Config.modes[i], {__index = defaultMode})
+
+	textModes[i] = {}
+	for k, v in pairs(defaultMode) do
+		textModes[i][k] = Config.modes[i][k]
+	end
+end
+textModes = table.deepclone(textModes)
+
+for i = 1, #Config.modes do
+	for k, v in pairs(defaultMode) do
+		if functions[k] then
+			Config.modes[i][k] = functions[k][Config.modes[i][k]]
+		end
+	end
+end
 
 Config.weapons = {
 	['WEAPON_ADVANCEDRIFLE'] = {

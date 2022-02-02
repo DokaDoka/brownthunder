@@ -4,22 +4,6 @@ local currentTargets = {
 	peds = {}
 }
 
-Modes = GlobalState['Modes']
-for i = 1, #Modes do
-	local mode = Modes[i]
-	setmetatable(mode, {__index = Config.defaultMode})
-	for k, v in pairs(mode) do
-		if type(v) == 'table' then
-			setmetatable(mode[k], {__index = Config.defaultMode[k]})
-			for k2, v2 in pairs(mode) do
-				if type(v2) == 'table' then
-					setmetatable(mode[k2], {__index = Config.defaultMode[k2]})
-				end
-			end
-		end
-	end
-end
-
 local mode
 local vectors = {}
 local entities = {}
@@ -50,53 +34,45 @@ end
 
 function getModels(targets)
 	for i = 1, #targets do
-		lib.requestModel(targets[i].model or Config.defaultTarget, 5000)
+		lib.requestModel(targets[i].model, 5000)
 	end
-	if next(mode.peds.models) then
-		for i = 1, #mode.peds.models do
-			lib.requestModel(mode.peds.models[i], 5000)
-		end
-	else
-		lib.requestModel(Config.defaultPed, 5000)
+	for i = 1, #mode.pedModels do
+		lib.requestModel(mode.pedModels[i], 5000)
 	end
 end
 
 function spawnTarget(vehicle, coords, previousVehicle)
 	local driver
 
-	local vehicle = spawnVehicle(vehicle.model or Config.defaultTarget, coords, false)
+	local vehicle = spawnVehicle(vehicle.model, coords, false)
 	local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
 	for i = -1, seats do
-		local ped = CreatePedInsideVehicle(vehicle, 0, mode.peds.models[math.random(#mode.peds.models)] or Config.defaultPed, i, true, false)
+		local ped = CreatePedInsideVehicle(vehicle, 0, mode.pedModels[math.random(#mode.pedModels)], i, true, false)
 		driver = driver or ped
 
 		SetPedHasAiBlip(ped, true)
 		SetPedAiBlipForcedOn(ped, true)
 		SetPedAiBlipHasCone(ped, false)
 
-		for j = 1, #mode.peds.weapons do
-			GiveWeaponToPed(ped, mode.peds.weapons[j], 10000, false, true)
+		for j = 1, #mode.pedWeapons do
+			GiveWeaponToPed(ped, mode.pedWeapons[j], 10000, false, true)
 		end
 
-		SetPedArmour(ped, mode.peds.armour)
+		SetPedArmour(ped, mode.pedArmour)
 
 		SetPedRelationshipGroupHash(ped, `PRISONER`)
 
 		currentTargets.peds[#currentTargets.peds + 1] = ped
 		entities[#entities + 1] = ped
-
-		if i + 2 == mode.peds.number then
-			break
-		end
 	end
 
 	entities[#entities + 1] = vehicle
 
 	if not previousVehicle then
-		TaskVehicleDriveWander(driver, vehicle, Config.defaultSpeed, 956)
+		TaskVehicleDriveWander(driver, vehicle, 50.0, 956)
 		SetTaskVehicleChaseBehaviorFlag(driver, 32, true)
 	else
-		TaskVehicleEscort(driver, vehicle, previousVehicle, -1, Config.defaultSpeed, 956, 10.0, 0, 5.0)
+		TaskVehicleEscort(driver, vehicle, previousVehicle, -1, 50.0, 956, 10.0, 0, 5.0)
 		SetTaskVehicleChaseBehaviorFlag(driver, 32, true)
 	end
 	return vehicle, GetEntityForwardVector(vehicle)
@@ -128,7 +104,7 @@ function endMode()
 end
 
 RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, targets, nextTargets)
-	mode = Modes[modeNumber]
+	mode = Config.modes[modeNumber]
 	sendLocal({'^1BROWN THUNDER', 'starting level ' .. stats.level + 1})
 	getModels(targets)
 	if vehicle then

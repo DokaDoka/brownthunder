@@ -1,5 +1,5 @@
 local tabs = {
-	modes = Modes
+	modes = textModes,
 }
 
 local controlWidth = 0.3

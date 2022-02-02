@@ -16,18 +16,53 @@ for i = 1, #Data.Vehicles do
 	Indexed.Vehicles[Data.Vehicles[i].model] = Data.Vehicles[i]
 end
 
+setmetatable(Config.vehicles, {
+	__index = function (table, key)
+		return {Indexed.Vehicles[key].model or key}
+  	end
+})
+
+for i = 1, #Config.modes do
+	local mode = Config.modes[i]
+	for j = 1, #mode.vehicle do
+		if type(mode.vehicle[j]) == 'string' then
+			mode.vehicle[j] = Config.vehicles[mode.vehicle[j]]
+			if mode.vehicle[j].build then
+				mode.options = mode.options or {}
+				mode.options[j] = table.deepclone(mode.vehicle[j])
+				mode.options[j].build = nil
+				mode.vehicle[j] = {}
+			end
+		end
+	end
+	for j = 1, #mode.targets do
+		local target = mode.targets[j]
+		if type(target) == 'table' then
+			for l = 1, #target do
+				target[l] = Config.vehicles[target[l]]
+				if target[l].build then
+					mode.targets[j].options = mode.targets[j].options or {}
+					mode.targets[j].options[l] = table.deepclone(target[l])
+					mode.targets[j].options[l].build = nil
+					target[l] = {}
+				end
+			end
+		end
+	end
+end
+
 for i = 1, #Data.Vehicles do
 	local vehicle = Data.Vehicles[i]
 	for j = 1, #Config.modes do
 	local mode = Config.modes[j]
-		if mode.vehicleOptions then
-			for l = 1, #mode.vehicleOptions do
-				local round = mode.vehicleOptions[l]
+		if mode.options then
+			for l = 1, #mode.options do
+				local round = mode.options[l]
 				for m = 1, #round do
 					local option = round[m]
 					for k, v in pairs(vehicle) do
 						if v == option then
-							mode.vehicleModels[l][#mode.vehicleModels[l] + 1] = vehicle.model
+							mode.vehicle[l][#mode.vehicle[l] + 1] = vehicle.model
 							break
 						end
 					end
@@ -43,7 +78,7 @@ for i = 1, #Data.Vehicles do
 						local option = round[n]
 						for k, v in pairs(vehicle) do
 							if v == option then
-								target.models[m][#target.models[m] + 1] = vehicle.model
+								target[m][#target[m] + 1] = vehicle.model
 								break
 							end
 						end
@@ -62,33 +97,17 @@ for i = 1, #Config.modes do
 			mode.targets[j] = table.deepclone(mode.targets[j - 1])
 		end
 	end
-	setmetatable(mode, {__index = Config.defaultMode})
-	for k, v in pairs(mode) do
-		if type(v) == 'table' then
-			setmetatable(mode[k], {__index = Config.defaultMode[k]})
-			for k2, v2 in pairs(mode) do
-				if type(v2) == 'table' then
-					setmetatable(mode[k2], {__index = Config.defaultMode[k2]})
-				end
-			end
-		end
-	end
 end
-
-GlobalState['Modes'] = Config.modes
 
 AddCommand('builtin.everyone', {'car', 'veh'}, function(source, args)
 	TriggerClientEvent('brownThunder:spawnVehicle', source, getVehicle(args.vehicle))
 end, {'vehicle:?string'})
 
 function getVehicle(vehicle)
-	if not vehicle then
-		return Indexed.Vehicles[Config.defaultVehicle]
-	elseif vehicle == 'random' then
+	if not vehicle or vehicle == 'random' then
 		return Data.Vehicles[math.random(#Data.Vehicles)]
-	else
-		return Indexed.Vehicles[vehicle]
 	end
+	return Indexed.Vehicles[vehicle]
 end
 
 RegisterServerEvent('brownThunder:nextRound', function(modeNumber, round)
@@ -97,16 +116,16 @@ RegisterServerEvent('brownThunder:nextRound', function(modeNumber, round)
 	local round = round or plyState.round + 1
 	local vehicle = false
 
-	if mode.vehicleModels[round] then
-		vehicle = getVehicle(mode.vehicleModels[round][math.random(#mode.vehicleModels[round])])
+	if mode.vehicle[round] then
+		vehicle = getVehicle(mode.vehicle[round][math.random(#mode.vehicle[round])])
 	else
-		if #mode.vehicleModels > 1 then
-			local round = round % #mode.vehicleModels
+		if #mode.vehicle > 1 then
+			local round = round % #mode.vehicle
 			if round == 0 then
-				round = #mode.vehicleModels
+				round = #mode.vehicle
 			end
-			if mode.vehicleModels[round] then
-				vehicle = getVehicle(mode.vehicleModels[round][math.random(#mode.vehicleModels[round])])
+			if mode.vehicle[round] then
+				vehicle = getVehicle(mode.vehicle[round][math.random(#mode.vehicle[round])])
 			end
 		end
 	end
