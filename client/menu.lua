@@ -24,8 +24,57 @@ tabs.modes.display = function(entry, i)
 		end
 
 		if vein:button('Details') then
+			entries, heading = details(entry)
+			entriesPerPage = 11
+			pages = math.ceil(#entries / entriesPerPage)
+			page = 1
 		end
 	vein:endRow()
+end
+
+function details(mode)
+	local entires = {
+		{label = 'Description: ', value = mode.description},
+		{label = 'Player Health: ', value = mode.playerHealth},
+		{label = 'Player Weapons: ', value = mode.playerWeapons},
+		{label = 'Vehicle: ', value = mode.vehicle},
+		{label = 'Extra Vehicle Health: ', value = mode.extraVehicleHealth},
+		{label = 'Ped Models: ', value = mode.pedModels},
+		{label = 'Ped Armour: ', value = mode.pedArmour},
+		{label = 'Targets: ', value = mode.targets},
+		{label = 'Get Targets: ', value = mode.getTargets},
+		{label = 'On Round Start: ', value = mode.onRoundStart},
+		{label = 'On Kill: ', value = mode.onKill},
+		display = function(entry, i)
+			if i == 1 then
+				vein:separator(width)
+			end
+
+			vein:beginRow()
+
+			local values = {}
+			if type(entry.value) == 'table' then
+				for i = 1, #entry.value do
+					if type(entry.value[i]) == 'table' then
+						for j = 1, #entry.value[i] do
+							values[#values + 1] = entry.value[i][j]
+							values[#values + 1] = ', '
+						end
+					else
+						values[#values + 1] = entry.value[i]
+						values[#values + 1] = ', '
+					end
+				end
+				values[#values] = nil
+				vein:textArea(entry.label .. table.concat(values), width)
+			else
+				vein:textArea(entry.label .. entry.value, width)
+			end
+
+			vein:endRow()
+		end
+	}
+	return entires, 'Details - ' .. mode.name
 end
 
 RegisterCommand('btMenu', function(source, args, rawCommand)
