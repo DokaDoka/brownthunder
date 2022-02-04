@@ -12,6 +12,116 @@ Config = {
 		['merryweather'] = {'boxville5', 'caracara', 'insurgent', 'insurgent2', 'insurgent3', 'menacer', 'mesa3', 'nightshark', 'technical', 'technical2', 'technical3', 'khanjali', 'tampa3'},
 		['ground'] = {build = true, 'Compact', 'Sedan', 'SUV', 'Utility', 'Coupe', 'Muscle', 'Sports Classic', 'Sports', 'Super', 'Motorcycle', 'Off Road', 'Truck', 'Van', 'Open Wheel'},
 	},
+	weapons = {
+		['all'] = {
+			`WEAPON_ADVANCEDRIFLE`,
+			`WEAPON_APPISTOL`,
+			`WEAPON_ASSAULTRIFLE`,
+			`WEAPON_ASSAULTRIFLE_MK2`,
+			`WEAPON_ASSAULTSHOTGUN`,
+			`WEAPON_ASSAULTSMG`,
+			`WEAPON_AUTOSHOTGUN`,
+			`WEAPON_BAT`,
+			`WEAPON_BALL`,
+			`WEAPON_BATTLEAXE`,
+			`WEAPON_BOTTLE`,
+			`WEAPON_BULLPUPRIFLE`,
+			`WEAPON_BULLPUPRIFLE_MK2`,
+			`WEAPON_BULLPUPSHOTGUN`,
+			`WEAPON_BZGAS`,
+			`WEAPON_CARBINERIFLE`,
+			`WEAPON_CARBINERIFLE_MK2`,
+			`WEAPON_COMBATMG`,
+			`WEAPON_COMBATMG_MK2`,
+			`WEAPON_COMBATPDW`,
+			`WEAPON_COMBATPISTOL`,
+			`WEAPON_COMPACTLAUNCHER`,
+			`WEAPON_COMPACTRIFLE`,
+			`WEAPON_CROWBAR`,
+			`WEAPON_DAGGER`,
+			`WEAPON_DBSHOTGUN`,
+			`WEAPON_DOUBLEACTION`,
+			`WEAPON_FIREEXTINGUISHER`,
+			`WEAPON_FIREWORK`,
+			`WEAPON_FLARE`,
+			`WEAPON_FLAREGUN`,
+			`WEAPON_FLASHLIGHT`,
+			`WEAPON_GOLFCLUB`,
+			`WEAPON_GRENADE`,
+			`WEAPON_GRENADELAUNCHER`,
+			`WEAPON_GUSENBERG`,
+			`WEAPON_HAMMER`,
+			`WEAPON_HEAVYPISTOL`,
+			`WEAPON_HEAVYSHOTGUN`,
+			`WEAPON_HEAVYSNIPER`,
+			`WEAPON_HEAVYSNIPER_MK2`,
+			`WEAPON_HOMINGLAUNCHER`,
+			`WEAPON_KNIFE`,
+			`WEAPON_KNUCKLE`,
+			`WEAPON_MACHETE`,
+			`WEAPON_MACHINEPISTOL`,
+			`WEAPON_MARKSMANPISTOL`,
+			`WEAPON_MARKSMANRIFLE`,
+			`WEAPON_MARKSMANRIFLE_MK2`,
+			`WEAPON_MG`,
+			`WEAPON_MICROSMG`,
+			`WEAPON_MINIGUN`,
+			`WEAPON_MINISMG`,
+			`WEAPON_MOLOTOV`,
+			`WEAPON_MUSKET`,
+			`WEAPON_NIGHTSTICK`,
+			`WEAPON_PETROLCAN`,
+			`WEAPON_PIPEBOMB`,
+			`WEAPON_PISTOL`,
+			`WEAPON_PISTOL50`,
+			`WEAPON_PISTOL_MK2`,
+			`WEAPON_POOLCUE`,
+			`WEAPON_PROXMINE`,
+			`WEAPON_PUMPSHOTGUN`,
+			`WEAPON_PUMPSHOTGUN_MK2`,
+			`WEAPON_RAILGUN`,
+			`WEAPON_REVOLVER`,
+			`WEAPON_REVOLVER_MK2`,
+			`WEAPON_RPG`,
+			`WEAPON_SAWNOFFSHOTGUN`,
+			`WEAPON_SMG`,
+			`WEAPON_SMG_MK2`,
+			`WEAPON_SMOKEGRENADE`,
+			`WEAPON_SNIPERRIFLE`,
+			`WEAPON_SNOWBALL`,
+			`WEAPON_SNSPISTOL`,
+			`WEAPON_SNSPISTOL_MK2`,
+			`WEAPON_SPECIALCARBINE`,
+			`WEAPON_SPECIALCARBINE_MK2`,
+			`WEAPON_STICKYBOMB`,
+			`WEAPON_STUNGUN`,
+			`WEAPON_SWITCHBLADE`,
+			`WEAPON_VINTAGEPISTOL`,
+			`WEAPON_WRENCH`,
+			`WEAPON_RAYPISTOL`,
+			`WEAPON_RAYCARBINE`,
+			`WEAPON_RAYMINIGUN`,
+			`WEAPON_STONE_HATCHET`,
+		},
+		['bodyguard'] = {
+			`WEAPON_APPISTOL`,
+			`WEAPON_CARBINERIFLE`,
+		},
+		['cop'] = {
+			`WEAPON_PISTOL`,
+			`WEAPON_PUMPSHOTGUN`,
+		},
+		['default'] = {
+			`WEAPON_ASSAULTRIFLE`,
+			`WEAPON_COMPACTRIFLE`,
+			`WEAPON_MICROSMG`,
+			`WEAPON_SAWNOFFSHOTGUN`,
+		},
+		['military'] = {
+			`WEAPON_MICROSMG`,
+			`WEAPON_MILITARYRIFLE`,
+		},
+	},
 }
 
 local functions = {
@@ -24,17 +134,6 @@ local functions = {
 			SetEntityHealth(plyPed, GetPedMaxHealth(plyPed))
 			SetPedArmour(plyPed, 100)
 		end,	
-	},
-	playerWeapons = {
-		['pistol'] = function()
-			GiveWeaponToPed(PlayerPedId(), `WEAPON_APPISTOL`, 1000, false, false)
-		end,
-		['all'] = function()
-			local plyPed = PlayerPedId()
-			for k, v in pairs(Config.weapons) do
-				GiveWeaponToPed(plyPed, joaat(k), 1000, false, false)
-			end
-		end,
 	},
 	pedModels = {
 		['armenians'] = {
@@ -140,22 +239,6 @@ local functions = {
 			`g_m_m_chigoon_02`,
 		},
 	},
-	pedWeapons = {
-		['bodyguard'] = {
-			`WEAPON_APPISTOL`,
-			`WEAPON_CARBINERIFLE`,
-		},
-		['default'] = {
-			`WEAPON_MICROSMG`,
-			`WEAPON_ASSAULTRIFLE`,
-			`WEAPON_COMPACTRIFLE`,
-			`WEAPON_SAWNOFFSHOTGUN`,
-		},
-		['military'] = {
-			`WEAPON_MICROSMG`,
-			`WEAPON_MILITARYRIFLE`,
-		},
-	},
 	getTargets = {
 		['static'] = function(targets, round)
 			local vehicles = {}
@@ -210,10 +293,12 @@ local functions = {
 
 			mode.playerHealth()
 
-			mode.playerWeapons()
+			local plyPed = PlayerPedId()
+			for j = 1, #mode.playerWeapons do
+				GiveWeaponToPed(plyPed, mode.playerWeapons[j], 10000, false, true)
+			end
 
 			if mode.extraVehicleHealth ~= 0 then
-				local plyPed = PlayerPedId()
 				local vehicle = GetVehiclePedIsIn(plyPed)
 				if vehicle ~= 0 then
 					local extraHealth = mode.extraVehicleHealth * 10
@@ -241,7 +326,7 @@ local defaultMode = {
 	description = 'No Mode Description Set',
 
 	playerHealth = 'armour',
-	playerWeapons = 'pistol',
+	playerWeapons = 'cop',
 
 	vehicle = {'attackHelicopters'},
 	extraVehicleHealth = 100,
@@ -373,549 +458,8 @@ for i = 1, #Config.modes do
 	for k, v in pairs(defaultMode) do
 		if functions[k] then
 			Config.modes[i][k] = functions[k][Config.modes[i][k]]
+		elseif (k == 'pedWeapons' or k == 'playerWeapons') and Config.weapons[v] then
+			Config.modes[i][k] = Config.weapons[v]
 		end
 	end
 end
-
-Config.weapons = {
-	['WEAPON_ADVANCEDRIFLE'] = {
-		label = 'Advanced Rifle',
-		weight = 3180,
-		durability = 0.6,
-		ammoname = 'ammo-rifle',
-	},
-
-	['WEAPON_APPISTOL'] = {
-		label = 'AP Pistol',
-		weight = 1220,
-		durability = 0.4,
-		ammoname = 'ammo-9',
-	},
-
-	['WEAPON_ASSAULTRIFLE'] = {
-		label = 'Assault Rifle',
-		weight = 3470,
-		durability = 0.8,
-		ammoname = 'ammo-rifle2',
-	},
-
-	['WEAPON_ASSAULTRIFLE_MK2'] = {
-		label = 'Assault Rifle MK2',
-		weight = 3300,
-		durability = 0.6,
-		ammoname = 'ammo-rifle2',
-	},
-
-	['WEAPON_ASSAULTSHOTGUN'] = {
-		label = 'Assault Shotgun',
-		weight = 3100,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_ASSAULTSMG'] = {
-		label = 'Assault SMG',
-		weight = 2850,
-		durability = 0.6,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_BALL'] = {
-		label = 'Ball',
-		weight = 149,
-		throwable = true,
-	},
-
-	['WEAPON_BAT'] = {
-		label = 'Bat',
-		weight = 1134,
-		durability = 1.0,
-	},
-
-	['WEAPON_BATTLEAXE'] = {
-		label = 'Battle Axe',
-		weight = 1200,
-		durability = 5.0,
-	},
-
-	['WEAPON_BOTTLE'] = {
-		label = 'Bottle',
-		weight = 350,
-		durability = 5.0,
-	},
-
-	['WEAPON_BULLPUPRIFLE'] = {
-		label = 'Bullpup Rifle',
-		weight = 2900,
-		durability = 0.9,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_BULLPUPRIFLE_MK2'] = {
-		label = 'Bullpup Rifle MK2',
-		weight = 2900,
-		durability = 0.7,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_BULLPUPSHOTGUN'] = {
-		label = 'Bullpup Shotgun',
-		weight = 3100,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_BZGAS'] = {
-		label = 'BZ Gas',
-		weight = 600,
-		throwable = true,
-	},
-
-	['WEAPON_CARBINERIFLE'] = {
-		label = 'Carbine Rifle',
-		weight = 3100,
-		durability = 0.8,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_CARBINERIFLE_MK2'] = {
-		label = 'Carbine Rifle MK2',
-		weight = 3000,
-		durability = 0.7,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_CERAMICPISTOL'] = {
-		label = 'Ceramic Pistol',
-		weight = 700,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_COMBATMG'] = {
-		label = 'Combat MG',
-		weight = 10000,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_COMBATMG_MK2'] = {
-		label = 'Combat MG MK2',
-		weight = 10500,
-		ammoname = 'ammo-rifle2'
-	},
-
-	['WEAPON_COMBATPDW'] = {
-		label = 'Combat PDW',
-		weight = 2700,
-		durability = 3.0,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_COMBATPISTOL'] = {
-		label = 'Combat Pistol',
-		weight = 970,
-		durability = 0.5,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_COMBATSHOTGUN'] = {
-		label = 'Combat Shotgun',
-		weight = 4400,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_COMPACTRIFLE'] = {
-		label = 'Compact Rifle',
-		weight = 2700,
-		durability = 0.7,
-		ammoname = 'ammo-rifle2'
-	},
-
-	['WEAPON_CROWBAR'] = {
-		label = 'Crowbar',
-		weight = 2500,
-		durability = 1.0,
-	},
-
-	['WEAPON_DAGGER'] = {
-		label = 'Dagger',
-		weight = 800,
-		durability = 1.0,
-	},
-
-	['WEAPON_DBSHOTGUN'] = {
-		label = 'Double Barrel Shotgun',
-		weight = 3175,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_DOUBLEACTION'] = {
-		label = 'Double Action Revolver',
-		weight = 940,
-		durability = 0.8,
-		ammoname = 'ammo-38'
-	},
-
-	['WEAPON_FIREEXTINGUISHER'] = {
-		label = 'Fire Extinguisher',
-		weight = 8616,
-	},
-
-	['WEAPON_FIREWORK'] = {
-		label = 'Firework Launcher',
-		weight = 1000,
-	},
-
-	['WEAPON_FLARE'] = {
-		label = 'Flare',
-		weight = 235,
-		throwable = true,
-	},
-
-	['WEAPON_FLAREGUN'] = {
-		label = 'Flare Gun',
-		weight = 1000,
-		durability = 1.0,
-		ammoname = 'ammo-flare'
-	},
-
-	['WEAPON_FLASHLIGHT'] = {
-		label = 'Flashlight',
-		weight = 125,
-		durability = 1.0,
-	},
-
-	['WEAPON_GOLFCLUB'] = {
-		label = 'Golf Club',
-		weight = 330,
-		durability = 1.0,
-	},
-
-	['WEAPON_GRENADE'] = {
-		label = 'Grenade',
-		weight = 600,
-		throwable = true,
-	},
-
-	['WEAPON_GUSENBERG'] = {
-		label = 'Gusenberg',
-		weight = 4900,
-		durability = 0.8,
-		ammoname = 'ammo-45'
-	},
-
-	['WEAPON_HAMMER'] = {
-		label = 'Hammer',
-		weight = 1200,
-		durability = 1.0,
-	},
-
-	['WEAPON_HATCHET'] = {
-		label = 'Hatchet',
-		weight = 1000,
-		durability = 1.0,
-	},
-
-	['WEAPON_HAZARDCAN'] = {
-		label = 'Hazard Can',
-		weight = 12000,
-	},
-
-	['WEAPON_HEAVYPISTOL'] = {
-		label = 'Heavy Pistol',
-		weight = 1100,
-		durability = 0.6,
-		ammoname = 'ammo-45'
-	},
-
-	['WEAPON_HEAVYSHOTGUN'] = {
-		label = 'Heavy Shotgun',
-		weight = 3600,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_HEAVYSNIPER'] = {
-		label = 'Heavy Sniper',
-		weight = 14000,
-		ammoname = 'ammo-heavysniper'
-	},
-
-	['WEAPON_HEAVYSNIPER_MK2'] = {
-		label = 'Heavy Sniper MK2',
-		weight = 10432,
-		ammoname = 'ammo-heavysniper'
-	},
-
-	['WEAPON_KNIFE'] = {
-		label = 'Knife',
-		weight = 300,
-		durability = 1.0,
-	},
-
-	['WEAPON_KNUCKLE'] = {
-		label = 'Knuckle Dusters',
-		weight = 300,
-		durability = 1.0,
-	},
-
-	['WEAPON_MACHETE'] = {
-		label = 'Machete',
-		weight = 1000,
-		durability = 1.0,
-	},
-
-	['WEAPON_MACHINEPISTOL'] = {
-		label = 'Machine Pistol',
-		weight = 1400,
-		durability = 0.7,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_MARKSMANPISTOL'] = {
-		label = 'Marksman Pistol',
-		weight = 1588,
-		durability = 4.0,
-		ammoname = 'ammo-22'
-	},
-
-	['WEAPON_MARKSMANRIFLE'] = {
-		label = 'Marksman Rifle',
-		weight = 7500,
-		ammoname = 'ammo-sniper'
-	},
-
-	['WEAPON_MARKSMANRIFLE_MK2'] = {
-		label = 'Marksman Rifle',
-		weight = 4000,
-		ammoname = 'ammo-sniper'
-	},
-
-	['WEAPON_MG'] = {
-		label = 'Machine Gun',
-		weight = 9000,
-		ammoname = 'ammo-rifle2'
-	},
-
-	['WEAPON_MICROSMG'] = {
-		label = 'Micro SMG',
-		weight = 4000,
-		durability = 0.6,
-		ammoname = 'ammo-45'
-	},
-
-	['WEAPON_MILITARYRIFLE'] = {
-		label = 'Military Rifle',
-		weight = 3600,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_MINISMG'] = {
-		label = 'Mini SMG',
-		weight = 2770,
-		durability = 0.6,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_MOLOTOV'] = {
-		label = 'Molotov',
-		weight = 1800,
-		throwable = true,
-	},
-
-	['WEAPON_MUSKET'] = {
-		label = 'Musket',
-		weight = 4500,
-		durability = 1.0,
-		ammoname = 'ammo-musket'
-	},
-
-	['WEAPON_NAVYREVOLVER'] = {
-		label = 'Navy Revolver',
-		weight = 2000,
-		ammoname = 'ammo-44'
-	},
-
-	['WEAPON_NIGHTSTICK'] = {
-		label = 'Nightstick',
-		weight = 1000,
-		durability = 1.0,
-	},
-
-	['WEAPON_PETROLCAN'] = {
-		label = 'Gas Can',
-		weight = 12000,
-	},
-
-	['WEAPON_PIPEBOMB'] = {
-		label = 'Pipe Bomb',
-		weight = 1800,
-		throwable = true,
-	},
-
-	['WEAPON_PISTOL'] = {
-		label = 'Pistol',
-		weight = 970,
-		durability = 0.6,
-		ammoname = 'ammo-9',
-	},
-
-	['WEAPON_PISTOL50'] = {
-		label = 'Pistol .50',
-		weight = 2000,
-		durability = 0.8,
-		ammoname = 'ammo-50'
-	},
-
-	['WEAPON_PISTOL_MK2'] = {
-		label = 'Pistol MK2',
-		weight = 970,
-		durability = 0.5,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_POOLCUE'] = {
-		label = 'Pool Cue',
-		weight = 146,
-	},
-
-	['WEAPON_PROXMINE'] = {
-		label = 'Proximity Mine',
-		weight = 2500,
-		throwable = true,
-	},
-
-	['WEAPON_PUMPSHOTGUN'] = {
-		label = 'Pump Shotgun',
-		weight = 3400,
-		durability = 0.8,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_PUMPSHOTGUN_MK2'] = {
-		label = 'Pump Shotgun MK2',
-		weight = 3200,
-		durability = 0.7,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_REVOLVER'] = {
-		label = 'Revolver',
-		weight = 2260,
-		durability = 0.8,
-		ammoname = 'ammo-44'
-	},
-
-	['WEAPON_REVOLVER_MK2'] = {
-		label = 'Revolver MK2',
-		weight = 1500,
-		durability = 0.7,
-		ammoname = 'ammo-44'
-	},
-
-	['WEAPON_SAWNOFFSHOTGUN'] = {
-		label = 'Sawn Off Shotgun',
-		weight = 2380,
-		durability = 0.9,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_SMG'] = {
-		label = 'SMG',
-		weight = 3084,
-		durability = 0.8,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_SMG_MK2'] = {
-		label = 'SMG Mk2',
-		weight = 2700,
-		durability = 0.7,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_SMOKEGRENADE'] = {
-		label = 'Smoke Grenade',
-		weight = 600,
-		throwable = true,
-	},
-
-	['WEAPON_SNIPERRIFLE'] = {
-		label = 'Sniper Rifle',
-		weight = 6500,
-		ammoname = 'ammo-sniper'
-	},
-
-	['WEAPON_SNOWBALL'] = {
-		label = 'Snow Ball',
-		weight = 5,
-		throwable = true,
-	},
-
-	['WEAPON_SNSPISTOL'] = {
-		label = 'SNS Pistol',
-		weight = 465,
-		durability = 0.7,
-		ammoname = 'ammo-45'
-	},
-
-	['WEAPON_SNSPISTOL_MK2'] = {
-		label = 'SNS Pistol MK2',
-		weight = 465,
-		durability = 0.6,
-		ammoname = 'ammo-45'
-	},
-
-	['WEAPON_SPECIALCARBINE'] = {
-		label = 'Special Carbine',
-		weight = 3000,
-		durability = 0.8,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_SPECIALCARBINE_MK2'] = {
-		label = 'Special Carbine MK2',
-		weight = 3370,
-		durability = 0.7,
-		ammoname = 'ammo-rifle'
-	},
-
-	['WEAPON_STICKYBOMB'] = {
-		label = 'Sticky Bomb',
-		weight = 1000,
-		throwable = true,
-	},
-
-	['WEAPON_STONE_HATCHET'] = {
-		label = 'Stone Hatchet',
-		weight = 800,
-		durability = 1.0,
-	},
-
-	['WEAPON_STUNGUN'] = {
-		label = 'Tazer',
-		weight = 227,
-		durability = 0.6,
-	},
-
-	['WEAPON_SWEEPERSHOTGUN'] = {
-		label = 'Sweeper Shotgun',
-		weight = 4400,
-		ammoname = 'ammo-shotgun'
-	},
-
-	['WEAPON_SWITCHBLADE'] = {
-		label = 'Switch Blade',
-		weight = 300,
-		durability = 1.0,
-	},
-
-	['WEAPON_VINTAGEPISTOL'] = {
-		label = 'Vintage Pistol',
-		weight = 100,
-		durability = 0.7,
-		ammoname = 'ammo-9'
-	},
-
-	['WEAPON_WRENCH'] = {
-		label = 'Wrench',
-		weight = 2500,
-		durability = 1.0,
-	},
-}

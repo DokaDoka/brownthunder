@@ -119,12 +119,6 @@ RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, target
 		end
 	end
 	vectors = {}
-	if mode.weapons then
-		local plyPed = PlayerPedId()
-		for k, v in pairs(Config.weapons) do
-			GiveWeaponToPed(plyPed, joaat(k), 1000, false, false)
-		end
-	end
 
 	SetRelationshipGroupDontAffectWantedLevel(`PRISONER`, false)
 	SetRelationshipBetweenGroups(5, `PRISONER`, `COP`)
