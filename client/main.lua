@@ -216,14 +216,18 @@ function spawnVehicle(name, coords, set)
 	local model = lib.requestModel(name, 5000)
 	if model then
 		local oldVeh, oldVehCoords, oldVehHeading, velocity, forwardVelocity, rotation
+		local peds = {[-1] = PlayerPedId()}
 		if set then
 			oldVeh = GetVehiclePedIsIn(ped)
 			if oldVeh ~= 0 then
+				local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
+				for i = -1, seats do
+					peds[i] = GetPedInVehicleSeat(oldVeh, i)
+				end
 				oldVehCoords = GetEntityCoords(oldVeh)
 				oldVehHeading = GetEntityHeading(oldVeh)
 				velocity = GetEntityVelocity(oldVeh)
-				local forwardVector = GetEntityForwardVector(oldVeh)
-				forwardVelocity = #(forwardVector * velocity)
+				forwardVelocity = #(GetEntityForwardVector(oldVeh) * velocity)
 				rotation = GetEntityRotation(oldVeh)
 				DeleteEntity(oldVeh)
 			end
@@ -249,7 +253,9 @@ function spawnVehicle(name, coords, set)
 			SetVehicleNeedsToBeHotwired(vehicle, false)
 			SetVehRadioStation(vehicle, 'OFF')
 			SetVehicleEngineOn(vehicle, true, true, true)
-			SetPedIntoVehicle(ped, vehicle, -1)
+			for i = -1, #peds do
+				SetPedIntoVehicle(peds[i], vehicle, i)
+			end
 		end
 		return vehicle
 	else
