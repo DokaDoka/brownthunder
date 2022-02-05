@@ -41,30 +41,37 @@ function getModels(targets)
 	end
 end
 
-function spawnTarget(vehicle, coords, previousVehicle)
+function fillVehicleWithPeds(vehicle, mode)
 	local driver
-
-	local vehicle = spawnVehicle(vehicle.model, coords, false)
 	local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
 	for i = -1, seats do
-		local ped = CreatePedInsideVehicle(vehicle, 0, mode.pedModels[math.random(#mode.pedModels)], i, true, false)
-		driver = driver or ped
+		if IsVehicleSeatFree(vehicle, i) then
+			local ped = CreatePedInsideVehicle(vehicle, 0, mode.pedModels[math.random(#mode.pedModels)], i, true, false)
+			driver = driver or ped
 
-		SetPedHasAiBlip(ped, true)
-		SetPedAiBlipForcedOn(ped, true)
-		SetPedAiBlipHasCone(ped, false)
+			for j = 1, #mode.pedWeapons do
+				GiveWeaponToPed(ped, mode.pedWeapons[j], 10000, false, true)
+			end
 
-		for j = 1, #mode.pedWeapons do
-			GiveWeaponToPed(ped, mode.pedWeapons[j], 10000, false, true)
+			SetPedHasAiBlip(ped, true)
+			SetPedAiBlipForcedOn(ped, true)
+			SetPedAiBlipHasCone(ped, false)
+
+			SetPedArmour(ped, mode.pedArmour)
+
+			SetPedRelationshipGroupHash(ped, `PRISONER`)
+
+			currentTargets.peds[#currentTargets.peds + 1] = ped
+			entities[#entities + 1] = ped
 		end
-
-		SetPedArmour(ped, mode.pedArmour)
-
-		SetPedRelationshipGroupHash(ped, `PRISONER`)
-
-		currentTargets.peds[#currentTargets.peds + 1] = ped
-		entities[#entities + 1] = ped
 	end
+	return driver
+end
+
+function spawnTarget(vehicle, coords, previousVehicle)
+	local vehicle = spawnVehicle(vehicle.model, coords, false)
+
+	local driver = fillVehicleWithPeds(vehicle, mode)
 
 	entities[#entities + 1] = vehicle
 
