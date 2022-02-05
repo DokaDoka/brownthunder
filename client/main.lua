@@ -136,6 +136,21 @@ function endMode()
 	homies = {}
 end
 
+function setAppropriateFiringPattern(ped)
+	local vehicle = GetVehiclePedIsIn(ped)
+	if ControlMountedWeapon(ped) then
+		SetPedFiringPattern(ped, -957453492)
+	elseif vehicle ~= 0 then
+		if IsPedInAnyHeli(ped) then
+			SetPedFiringPattern(ped, -1857128337)
+		else
+			SetPedFiringPattern(ped, -753768974)
+		end
+	else
+		SetPedFiringPattern(ped, -957453492)
+	end
+end
+
 RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, targets, nextTargets)
 	mode = Config.modes[modeNumber]
 	sendLocal({'^1BROWN THUNDER', 'starting level ' .. stats.level + 1})
@@ -240,6 +255,13 @@ CreateThread(function()
 				elseif mode.vehicleHealth == 'standard' then
 					SetVehicleTyresCanBurst(vehicle, false)
 				end
+			end
+
+			for i = 1, #currentTargets.peds do
+				setAppropriateFiringPattern(currentTargets.peds[i])
+			end
+			for i = 1, #homies do
+				setAppropriateFiringPattern(homies[i])
 			end
 		end
 	end
