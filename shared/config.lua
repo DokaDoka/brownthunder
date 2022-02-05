@@ -331,6 +331,10 @@ local defaultMode = {
 	vehicle = {'attackHelicopters'},
 	extraVehicleHealth = 100,
 
+	homiePeds = 'business',
+	homieWeapons = 'all',
+	homieArmour = 100,
+
 	targetPeds = 'prisoners',
 	targetWeapons = 'default',
 	targetArmour = 100,
@@ -458,9 +462,9 @@ for i = 1, #Config.modes do
 	for k, v in pairs(defaultMode) do
 		if functions[k] then
 			Config.modes[i][k] = functions[k][Config.modes[i][k]]
-		elseif (k == 'targetWeapons' or k == 'playerWeapons') and Config.weapons[Config.modes[i][k]] then
+		elseif (k == 'playerWeapons' or k == 'homieWeapons' or k == 'targetWeapons') and Config.weapons[Config.modes[i][k]] then
 			Config.modes[i][k] = Config.weapons[Config.modes[i][k]]
-		elseif k == 'targetPeds' and Config.peds[Config.modes[i][k]] then
+		elseif (k == 'homiePeds' or k == 'targetPeds') and Config.peds[Config.modes[i][k]] then
 			Config.modes[i][k] = Config.peds[Config.modes[i][k]]
 		end
 	end

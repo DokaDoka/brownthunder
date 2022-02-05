@@ -1,4 +1,5 @@
 local vehicleOffset = {}
+local homies = {}
 local currentTargets = {
 	vehicles = {},
 	peds = {}
@@ -39,30 +40,50 @@ function getModels(targets)
 	for i = 1, #mode.targetPeds do
 		lib.requestModel(mode.targetPeds[i], 5000)
 	end
+	for i = 1, #mode.homiePeds do
+		lib.requestModel(mode.homiePeds[i], 5000)
+	end
 end
 
-function fillVehicleWithPeds(vehicle, mode)
-	local driver
+function fillVehicleWithPeds(vehicle, mode, target)
+	local driver, groupHash, peds, weapons, armour
+
+	if target then
+		groupHash = `PRISONER`
+		peds = mode.targetPeds
+		weapons = mode.targetWeapons
+		armour = mode.targetArmour
+	else
+		groupHash = `PLAYER`
+		peds = mode.homiePeds
+		weapons = mode.homieWeapons
+		armour = mode.homieArmour
+	end
+
 	local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
 	for i = -1, seats do
 		if IsVehicleSeatFree(vehicle, i) then
-			local ped = CreatePedInsideVehicle(vehicle, 0, mode.targetPeds[math.random(#mode.targetPeds)], i, true, false)
+			local ped = CreatePedInsideVehicle(vehicle, 0, peds[math.random(#peds)], i, true, false)
 			driver = driver or ped
 
-			for j = 1, #mode.targetWeapons do
-				GiveWeaponToPed(ped, mode.targetWeapons[j], 10000, false, true)
+			for j = 1, #weapons do
+				GiveWeaponToPed(ped, weapons[j], 10000, false, true)
 			end
 
-			SetPedHasAiBlip(ped, true)
-			SetPedAiBlipForcedOn(ped, true)
-			SetPedAiBlipHasCone(ped, false)
+			SetPedArmour(ped, armour)
 
-			SetPedArmour(ped, mode.targetArmour)
+			SetPedRelationshipGroupHash(ped, groupHash)
 
-			SetPedRelationshipGroupHash(ped, `PRISONER`)
+			if target then
+				SetPedHasAiBlip(ped, true)
+				SetPedAiBlipForcedOn(ped, true)
+				SetPedAiBlipHasCone(ped, false)
 
-			currentTargets.peds[#currentTargets.peds + 1] = ped
-			entities[#entities + 1] = ped
+				currentTargets.peds[#currentTargets.peds + 1] = ped
+				entities[#entities + 1] = ped
+			else
+				homies[#homies + 1] = ped
+			end
 		end
 	end
 	return driver
@@ -71,7 +92,7 @@ end
 function spawnTarget(vehicle, coords, previousVehicle)
 	local vehicle = spawnVehicle(vehicle.model, coords, false)
 
-	local driver = fillVehicleWithPeds(vehicle, mode)
+	local driver = fillVehicleWithPeds(vehicle, mode, true)
 
 	entities[#entities + 1] = vehicle
 
@@ -108,15 +129,23 @@ function endMode()
 	Player(GetPlayerServerId(PlayerId())).state:set('nextTargets', nil, true)
 	stats.kills = 0
 	stats.level = 0
+	for i = 1, #homies do
+		local homie = homies[i]
+		SetEntityAsNoLongerNeeded(homie)
+	end
+	homies = {}
 end
 
 RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, targets, nextTargets)
 	mode = Config.modes[modeNumber]
 	sendLocal({'^1BROWN THUNDER', 'starting level ' .. stats.level + 1})
 	getModels(targets)
+
 	if vehicle then
-		spawnVehicle(vehicle.model, false, true)
+		local vehicle = spawnVehicle(vehicle.model, false, true)
+		fillVehicleWithPeds(vehicle, mode, false)
 	end
+
 	local spawnPoint = getSpawnPoint()
 	local previousVehicle, forwardVector = spawnTarget(targets[1], spawnPoint)
 	if #targets > 1 then
@@ -127,7 +156,11 @@ RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, target
 	end
 	vectors = {}
 
+	SetPedRelationshipGroupHash(PlayerPedId(), `PLAYER`)
+
+	SetRelationshipGroupDontAffectWantedLevel(`PLAYER`, false)
 	SetRelationshipGroupDontAffectWantedLevel(`PRISONER`, false)
+
 	SetRelationshipBetweenGroups(5, `PRISONER`, `COP`)
 	SetRelationshipBetweenGroups(5, `COP`, `PRISONER`)
 	SetRelationshipBetweenGroups(5, `PRISONER`, `ARMY`)
