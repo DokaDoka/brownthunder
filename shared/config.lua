@@ -229,16 +229,6 @@ Config = {
 }
 
 local functions = {
-	playerHealth = {
-		['health'] = function()
-			SetEntityHealth(PlayerPedId(), 200)
-		end,
-		['armour'] = function()
-			local plyPed = PlayerPedId()
-			SetEntityHealth(plyPed, GetPedMaxHealth(plyPed))
-			SetPedArmour(plyPed, 100)
-		end,	
-	},
 	getTargets = {
 		['static'] = function(targets, round)
 			local vehicles = {}
@@ -288,12 +278,30 @@ local functions = {
 		end,
 	},
 	onRoundStart = {
-		['default'] = function(mode)
+		['default'] = function(mode, homies)
 			PlaySoundFrontend(-1, "Checkpoint_Hit", "GTAO_FM_Events_Soundset", 0)
 
-			mode.playerHealth()
-
 			local plyPed = PlayerPedId()
+			if mode.playerHealth == 'health' then
+				SetEntityHealth(plyPed, GetPedMaxHealth(plyPed))
+				if mode.homiehealth == 'mirrorPlayer' then
+					for i = 1, #homies do
+						local homie = homies[i]
+						SetEntityHealth(homie, GetPedMaxHealth(homie))
+					end
+				end
+			elseif mode.playerHealth == 'armour' then
+				SetEntityHealth(plyPed, GetPedMaxHealth(plyPed))
+				SetPedArmour(plyPed, 100)
+				if mode.homiehealth == 'mirrorPlayer' then
+					for i = 1, #homies do
+						local homie = homies[i]
+						SetEntityHealth(homie, GetPedMaxHealth(homie))
+						SetPedArmour(homie, 100)
+					end
+				end
+			end
+		
 			for j = 1, #mode.playerWeapons do
 				GiveWeaponToPed(plyPed, mode.playerWeapons[j], 10000, false, true)
 			end
@@ -333,7 +341,7 @@ local defaultMode = {
 
 	homiePeds = 'business',
 	homieWeapons = 'all',
-	homieArmour = 100,
+	homiehealth = 'mirrorPlayer',
 
 	targetPeds = 'prisoners',
 	targetWeapons = 'default',

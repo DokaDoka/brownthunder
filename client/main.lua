@@ -186,7 +186,7 @@ RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, target
 	SetRelationshipBetweenGroups(5, `PRIVATE_SECURITY`, `PRISONER`)
 
 	activeMode = true
-	mode.onRoundStart(mode)
+	mode.onRoundStart(mode, homies)
 
 	getModels(nextTargets)
 end)
