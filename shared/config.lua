@@ -458,8 +458,8 @@ for i = 1, #Config.modes do
 	for k, v in pairs(defaultMode) do
 		if functions[k] then
 			Config.modes[i][k] = functions[k][Config.modes[i][k]]
-		elseif (k == 'pedWeapons' or k == 'playerWeapons') and Config.weapons[v] then
-			Config.modes[i][k] = Config.weapons[v]
+		elseif (k == 'pedWeapons' or k == 'playerWeapons') and Config.weapons[Config.modes[i][k]] then
+			Config.modes[i][k] = Config.weapons[Config.modes[i][k]]
 		end
 	end
 end
