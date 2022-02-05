@@ -36,8 +36,8 @@ function getModels(targets)
 	for i = 1, #targets do
 		lib.requestModel(targets[i].model, 5000)
 	end
-	for i = 1, #mode.pedModels do
-		lib.requestModel(mode.pedModels[i], 5000)
+	for i = 1, #mode.targetPeds do
+		lib.requestModel(mode.targetPeds[i], 5000)
 	end
 end
 
@@ -46,18 +46,18 @@ function fillVehicleWithPeds(vehicle, mode)
 	local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
 	for i = -1, seats do
 		if IsVehicleSeatFree(vehicle, i) then
-			local ped = CreatePedInsideVehicle(vehicle, 0, mode.pedModels[math.random(#mode.pedModels)], i, true, false)
+			local ped = CreatePedInsideVehicle(vehicle, 0, mode.targetPeds[math.random(#mode.targetPeds)], i, true, false)
 			driver = driver or ped
 
-			for j = 1, #mode.pedWeapons do
-				GiveWeaponToPed(ped, mode.pedWeapons[j], 10000, false, true)
+			for j = 1, #mode.targetWeapons do
+				GiveWeaponToPed(ped, mode.targetWeapons[j], 10000, false, true)
 			end
 
 			SetPedHasAiBlip(ped, true)
 			SetPedAiBlipForcedOn(ped, true)
 			SetPedAiBlipHasCone(ped, false)
 
-			SetPedArmour(ped, mode.pedArmour)
+			SetPedArmour(ped, mode.targetArmour)
 
 			SetPedRelationshipGroupHash(ped, `PRISONER`)
 

@@ -1,6 +1,110 @@
 local table = import 'table'
 
 Config = {
+	peds = {
+		['armenians'] = {
+			`g_m_m_armboss_01`,
+			`g_m_m_armgoon_01`,
+			`g_m_m_armlieut_01`,
+			`g_m_y_armgoon_02`,
+		},
+		['ballas'] = {
+			`csb_ballasog`,
+			`g_f_y_ballas_01`,
+			`g_m_y_ballaeast_01`,
+			`g_m_y_ballaorig_01`,
+			`g_m_y_ballasout_01`,
+		},
+		['bodyguard'] = {
+			`s_m_m_highsec_01`,
+			`s_m_m_highsec_02`,
+			`s_m_y_clubbar_01`,
+			`s_m_y_devinsec_01`,
+			`s_m_y_doorman_01`,
+			`s_m_y_casino_01`,
+			`s_m_y_westsec_01`,
+			`u_m_m_jewelsec_01`,
+			`u_m_m_jewelthief`,
+		},
+		['business'] = {
+			`a_f_m_business_02`,
+			`a_f_y_business_01`,
+			`a_f_y_business_02`,
+			`a_f_y_business_03`,
+			`a_f_y_business_04`,
+			`a_m_m_business_01`,
+			`a_m_y_business_01`,
+			`a_m_y_business_02`,
+			`a_m_y_business_03`,
+		},
+		['cult'] = {
+			`a_m_m_acult_01`,
+			`a_m_o_acult_01`,
+			`a_m_o_acult_02`,
+			`a_m_y_acult_01`,
+			`a_m_y_acult_02`,
+		},
+		['default'] = {
+			`s_m_m_mariachi_01`,
+		},
+		['epsilon'] = {
+			`a_f_y_epsilon_01`,
+			`a_m_y_epsilon_01`,
+			`a_m_y_epsilon_02`,
+		},
+		['families'] = {
+			`g_f_y_families_01`,
+			`g_m_y_famca_01`,
+			`g_m_y_famdnf_01`,
+			`g_m_y_famfor_01`,
+		},
+		['kkangpae'] = {
+			`g_m_m_korboss_01`,
+			`g_m_y_korean_01`,
+			`g_m_y_korean_02`,
+			`g_m_y_korlieut_01`,
+		},
+		['lost'] = {
+			`g_f_y_lost_01`,
+			`g_m_y_lost_01`,
+			`g_m_y_lost_02`,
+			`g_m_y_lost_03`,
+		},
+		['merryweather'] = {
+			`s_m_y_blackops_01`,
+			`s_m_y_blackops_02`,
+			`s_m_y_blackops_03`,
+		},
+		['mexican'] = {
+			`a_m_y_mexthug_01`,
+			`g_m_m_mexboss_01`,
+			`g_m_m_mexboss_02`,
+			`g_m_y_mexgang_01`,
+			`g_m_y_mexgoon_01`,
+			`g_m_y_mexgoon_02`,
+			`g_m_y_mexgoon_03`,
+		},
+		['military'] = {
+			`s_m_m_marine_01`,
+			`s_m_m_marine_02`,
+			`s_m_y_armymech_01`,
+			`s_m_y_marine_01`,
+			`s_m_y_marine_02`,
+			`s_m_y_marine_03`,
+		},
+		['prisoners'] = {
+			`s_m_y_prismuscl_01`,
+			`s_m_y_prisoner_01`,
+			`u_m_y_prisoner_01`,
+		},
+		['triads'] = {
+			`csb_chin_goon`,
+			`g_m_m_chiboss_01`,
+			`g_m_m_chicold_01`,
+			`g_m_m_chigoon_01`,
+			`g_m_m_chigoon_02`,
+		},
+	},
 	vehicles = {
 		['copy'] = 'copy',
 		['repeat'] = 'repeat',
@@ -135,110 +239,6 @@ local functions = {
 			SetPedArmour(plyPed, 100)
 		end,	
 	},
-	pedModels = {
-		['armenians'] = {
-			`g_m_m_armboss_01`,
-			`g_m_m_armgoon_01`,
-			`g_m_m_armlieut_01`,
-			`g_m_y_armgoon_02`,
-		},
-		['ballas'] = {
-			`csb_ballasog`,
-			`g_f_y_ballas_01`,
-			`g_m_y_ballaeast_01`,
-			`g_m_y_ballaorig_01`,
-			`g_m_y_ballasout_01`,
-		},
-		['bodyguard'] = {
-			`s_m_m_highsec_01`,
-			`s_m_m_highsec_02`,
-			`s_m_y_clubbar_01`,
-			`s_m_y_devinsec_01`,
-			`s_m_y_doorman_01`,
-			`s_m_y_casino_01`,
-			`s_m_y_westsec_01`,
-			`u_m_m_jewelsec_01`,
-			`u_m_m_jewelthief`,
-		},
-		['business'] = {
-			`a_f_m_business_02`,
-			`a_f_y_business_01`,
-			`a_f_y_business_02`,
-			`a_f_y_business_03`,
-			`a_f_y_business_04`,
-			`a_m_m_business_01`,
-			`a_m_y_business_01`,
-			`a_m_y_business_02`,
-			`a_m_y_business_03`,
-		},
-		['cult'] = {
-			`a_m_m_acult_01`,
-			`a_m_o_acult_01`,
-			`a_m_o_acult_02`,
-			`a_m_y_acult_01`,
-			`a_m_y_acult_02`,
-		},
-		['default'] = {
-			`s_m_m_mariachi_01`,
-		},
-		['epsilon'] = {
-			`a_f_y_epsilon_01`,
-			`a_m_y_epsilon_01`,
-			`a_m_y_epsilon_02`,
-		},
-		['families'] = {
-			`g_f_y_families_01`,
-			`g_m_y_famca_01`,
-			`g_m_y_famdnf_01`,
-			`g_m_y_famfor_01`,
-		},
-		['kkangpae'] = {
-			`g_m_m_korboss_01`,
-			`g_m_y_korean_01`,
-			`g_m_y_korean_02`,
-			`g_m_y_korlieut_01`,
-		},
-		['lost'] = {
-			`g_f_y_lost_01`,
-			`g_m_y_lost_01`,
-			`g_m_y_lost_02`,
-			`g_m_y_lost_03`,
-		},
-		['merryweather'] = {
-			`s_m_y_blackops_01`,
-			`s_m_y_blackops_02`,
-			`s_m_y_blackops_03`,
-		},
-		['mexican'] = {
-			`a_m_y_mexthug_01`,
-			`g_m_m_mexboss_01`,
-			`g_m_m_mexboss_02`,
-			`g_m_y_mexgang_01`,
-			`g_m_y_mexgoon_01`,
-			`g_m_y_mexgoon_02`,
-			`g_m_y_mexgoon_03`,
-		},
-		['military'] = {
-			`s_m_m_marine_01`,
-			`s_m_m_marine_02`,
-			`s_m_y_armymech_01`,
-			`s_m_y_marine_01`,
-			`s_m_y_marine_02`,
-			`s_m_y_marine_03`,
-		},
-		['prisoners'] = {
-			`s_m_y_prismuscl_01`,
-			`s_m_y_prisoner_01`,
-			`u_m_y_prisoner_01`,
-		},
-		['triads'] = {
-			`csb_chin_goon`,
-			`g_m_m_chiboss_01`,
-			`g_m_m_chicold_01`,
-			`g_m_m_chigoon_01`,
-			`g_m_m_chigoon_02`,
-		},
-	},
 	getTargets = {
 		['static'] = function(targets, round)
 			local vehicles = {}
@@ -331,9 +331,9 @@ local defaultMode = {
 	vehicle = {'attackHelicopters'},
 	extraVehicleHealth = 100,
 
-	pedModels = 'prisoners',
-	pedWeapons = 'default',
-	pedArmour = 100,
+	targetPeds = 'prisoners',
+	targetWeapons = 'default',
+	targetArmour = 100,
 
 	targets = {
 		{
@@ -365,8 +365,8 @@ Config.modes = {
 
 		vehicle = {'emergency'},
 
-		pedModels = 'bodyguard',
-		pedWeapons = 'bodyguard',
+		targetPeds = 'bodyguard',
+		targetWeapons = 'bodyguard',
 
 		targets = {
 			{
@@ -397,8 +397,8 @@ Config.modes = {
 		name = 'Rhino Hunting',
 		description = 'Exactly what it sounds like, be warned',
 
-		pedModels = 'military',
-		pedWeapons = 'military',
+		targetPeds = 'military',
+		targetWeapons = 'military',
 
 		targets = {
 			{
@@ -413,8 +413,8 @@ Config.modes = {
 		name = 'Military Convoy',
 		description = 'A random assortment of military vehicles',
 
-		pedModels = 'military',
-		pedWeapons = 'military',
+		targetPeds = 'military',
+		targetWeapons = 'military',
 		
 		targets = {
 			{
@@ -429,8 +429,8 @@ Config.modes = {
 		name = 'Merryweather Convoy',
 		description = 'A random assortment of paramilitary vehicles',
 
-		pedModels = 'merryweather',
-		pedWeapons = 'military',
+		targetPeds = 'merryweather',
+		targetWeapons = 'military',
 
 		targets = {
 			{
@@ -458,8 +458,10 @@ for i = 1, #Config.modes do
 	for k, v in pairs(defaultMode) do
 		if functions[k] then
 			Config.modes[i][k] = functions[k][Config.modes[i][k]]
-		elseif (k == 'pedWeapons' or k == 'playerWeapons') and Config.weapons[Config.modes[i][k]] then
+		elseif (k == 'targetWeapons' or k == 'playerWeapons') and Config.weapons[Config.modes[i][k]] then
 			Config.modes[i][k] = Config.weapons[Config.modes[i][k]]
+		elseif k == 'targetPeds' and Config.peds[Config.modes[i][k]] then
+			Config.modes[i][k] = Config.peds[Config.modes[i][k]]
 		end
 	end
 end
