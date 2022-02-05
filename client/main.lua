@@ -268,15 +268,15 @@ CreateThread(function()
 end)
 
 function spawnVehicle(name, coords, set)
-	local ped = PlayerPedId()
+	local plyPed = PlayerPedId()
 	local model = lib.requestModel(name, 5000)
 	if model then
 		local oldVeh, oldVehCoords, oldVehHeading, velocity, forwardVelocity, rotation
-		local peds = {[-1] = PlayerPedId()}
+		local peds = {[-1] = plyPed}
 		if set then
-			oldVeh = GetVehiclePedIsIn(ped)
+			oldVeh = GetVehiclePedIsIn(plyPed)
 			if oldVeh ~= 0 then
-				local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
+				local seats = GetVehicleModelNumberOfSeats(GetEntityModel(oldVeh)) - 2
 				for i = -1, seats do
 					peds[i] = GetPedInVehicleSeat(oldVeh, i)
 				end
@@ -289,8 +289,8 @@ function spawnVehicle(name, coords, set)
 			end
 		end
 
-		local vector = coords and coords.xyz or oldVehCoords or GetEntityCoords(ped)
-		local heading = coords and coords.w or oldVehHeading or GetEntityHeading(ped)
+		local vector = coords and coords.xyz or oldVehCoords or GetEntityCoords(plyPed)
+		local heading = coords and coords.w or oldVehHeading or GetEntityHeading(plyPed)
 
 		RequestCollisionAtCoord(vector)
 
