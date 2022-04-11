@@ -1,5 +1,4 @@
-local AddCommand = import 'commands'
-local table = import 'table'
+local table = lib.table
 
 Data = {}
 Indexed = {}
@@ -99,7 +98,7 @@ for i = 1, #Config.modes do
 	end
 end
 
-AddCommand('builtin.everyone', {'car', 'veh'}, function(source, args)
+lib.AddCommand('builtin.everyone', {'car', 'veh'}, function(source, args)
 	TriggerClientEvent('brownThunder:spawnVehicle', source, getVehicle(args.vehicle))
 end, {'vehicle:?string'})
 

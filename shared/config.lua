@@ -1,4 +1,4 @@
-local table = import 'table'
+local table = lib.table
 
 Config = {
 	peds = {

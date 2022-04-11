@@ -7,12 +7,12 @@ description "DokaDoka's Brown Thunder"
 version "0.1.0"
 
 dependencies {
-	'pe-lualib',
+	'ox_lib',
 	'vein',
 }
 
 shared_scripts {
-	'@pe-lualib/init.lua',
+	'@ox_lib/init.lua',
 	'shared/*.lua',
 }
 
