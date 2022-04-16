@@ -54,7 +54,7 @@ end)
 
 RegisterServerEvent('brownThunder:endMission', function(kills)
 	local instance = instances[source]
-	local player = instance(source)
+	local player = Player(source)
 
 	if instance.round > 1 then
 		MySQL.insert('INSERT INTO scores (charid, name, round, kills, mission, vehicle) VALUES (?, ?, ?, ?, ?, ?)', {player.charid, player.firstname .. ' ' .. player.lastname, instance.round, kills, instance.mission, instance.vehicle})
