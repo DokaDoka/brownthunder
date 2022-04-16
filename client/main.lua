@@ -1,140 +1,230 @@
 local vehicleOffset = {}
-local homies = {}
-local currentTargets = {
-	vehicles = {},
-	peds = {}
-}
+local units = {}
+local roundEnded
+local kills = 0
+local heartbeat, updateAi
 
-local mode
-local vectors = {}
-local entities = {}
+local focus
+local spawns = {}
 
-local stats = {
-	kills = 0,
-	level = 0
-}
+function setRelationships()
+	AddRelationshipGroup('HOMIES')
+	AddRelationshipGroup('TARGET')
 
-function getSpawnPoint(coords, vector)
-	local plyPed, space, retrieval, outPosition, outHeading = PlayerPedId(), 2
-	while not retrieval do
-		Wait(0)
-		local plyPos = GetEntityCoords(plyPed)
-		local x, y, z in (coords or plyPos)
-		local direction = vector or plyPos
-		retrieval, outPosition, outHeading = GetNthClosestVehicleNodeFavourDirection(x, y, z, direction.x, direction.y, direction.z, vector and space or 2000, 1, 0x40400000, 0)
-		for i = 1, #vectors do
-			if vectors[i] == outPosition.xyz then
-				space += 2
-				retrieval = nil
+	SetRelationshipGroupDontAffectWantedLevel(`HOMIES`, false)
+	SetRelationshipGroupDontAffectWantedLevel(`TARGET`, false)
+
+	SetRelationshipBetweenGroups(0, `HOMIES`, `PLAYER`)
+	SetRelationshipBetweenGroups(0, `PLAYER`, `HOMIES`)
+	
+	SetRelationshipBetweenGroups(5, `TARGET`, `PLAYER`)
+	SetRelationshipBetweenGroups(5, `PLAYER`, `TARGET`)
+	
+	SetRelationshipBetweenGroups(5, `HOMIES`, `TARGET`)
+	SetRelationshipBetweenGroups(5, `TARGET`, `HOMIES`)
+	
+	SetRelationshipBetweenGroups(5, `HOMIES`, `COP`)
+	SetRelationshipBetweenGroups(5, `TARGET`, `COP`)
+	SetRelationshipBetweenGroups(5, `COP`, `HOMIES`)
+	SetRelationshipBetweenGroups(5, `COP`, `TARGET`)
+	SetRelationshipBetweenGroups(5, `HOMIES`, `ARMY`)
+	SetRelationshipBetweenGroups(5, `TARGET`, `ARMY`)
+	SetRelationshipBetweenGroups(5, `ARMY`, `HOMIES`)
+	SetRelationshipBetweenGroups(5, `ARMY`, `TARGET`)
+	SetRelationshipBetweenGroups(5, `HOMIES`, `SECURITY_GUARD`)
+	SetRelationshipBetweenGroups(5, `TARGET`, `SECURITY_GUARD`)
+	SetRelationshipBetweenGroups(5, `SECURITY_GUARD`, `HOMIES`)
+	SetRelationshipBetweenGroups(5, `SECURITY_GUARD`, `TARGET`)
+	SetRelationshipBetweenGroups(5, `HOMIES`, `PRIVATE_SECURITY`)
+	SetRelationshipBetweenGroups(5, `TARGET`, `PRIVATE_SECURITY`)
+	SetRelationshipBetweenGroups(5, `PRIVATE_SECURITY`, `HOMIES`)
+	SetRelationshipBetweenGroups(5, `PRIVATE_SECURITY`, `TARGET`)
+end
+setRelationships()
+
+function getSpawnPoint(mission)
+	local plyPed, outPosition, outHeading = PlayerPedId()
+	local plyPos = GetEntityCoords(plyPed)
+	local inHeading, inPos = math.random(360)
+	repeat
+		if mission.spawn == 'dispersed' then
+			inPos = (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * math.random(500, 1500)) + plyPos
+		elseif mission.spawn == 'cluster' then
+			focus = focus or (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * math.random(500, 1500)) + plyPos
+			inHeading = math.random(360)
+			inPos = (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * 25) + focus
+		end
+
+		_, outPosition, outHeading = GetNthClosestVehicleNodeWithHeading(inPos.x, inPos.y, inPos.z, math.random(10), false, false, false)
+
+		for i = 1, #spawns do
+			local spawn = spawns[i]
+			if #(spawn - outPosition) < 5 then
+				outPosition = nil
+				break
 			end
 		end
-	end
-	vectors[#vectors + 1] = outPosition.xyz
+	until outPosition
+
+	spawns[#spawns + 1] = outPosition
+	
 	return vec(outPosition.xyz, outHeading)
 end
 
-function getModels(targets)
+function getModels(targets, mission)
 	for i = 1, #targets do
-		lib.requestModel(targets[i].model, 5000)
+		lib.requestModel(targets[i].model, 1000)
 	end
-	for i = 1, #mode.targetPeds do
-		lib.requestModel(mode.targetPeds[i], 5000)
+
+	for i = 1, #Config.peds[mission.targetPeds] do
+		local ped = Config.peds[mission.targetPeds][i]
+		lib.requestModel(ped)
 	end
-	for i = 1, #mode.homiePeds do
-		lib.requestModel(mode.homiePeds[i], 5000)
+
+	for i = 1, #Config.peds[Config.settings.homies] do
+		local ped = Config.peds[Config.settings.homies][i]
+		lib.requestModel(ped)
 	end
 end
 
-function fillVehicleWithPeds(vehicle, mode, target)
-	local driver, groupHash, peds, weapons, armour
-
-	if target then
-		groupHash = `PRISONER`
-		peds = mode.targetPeds
-		weapons = mode.targetWeapons
-		armour = mode.targetArmour
-	else
-		groupHash = `PLAYER`
-		peds = mode.homiePeds
-		weapons = mode.homieWeapons
-		armour = mode.homieArmour
-	end
+function fillVehicleWithPeds(vehicle, target, mission)
+	local peds = target and Config.peds[mission.targetPeds] or Config.peds[Config.settings.homies]
+	local members = {}
 
 	local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
 	for i = -1, seats do
+		members[#members + 1] = {
+			alive = true
+		}
 		if IsVehicleSeatFree(vehicle, i) then
-			local ped = CreatePedInsideVehicle(vehicle, 0, peds[math.random(#peds)], i, true, false)
-			driver = driver or ped
-
-			for j = 1, #weapons do
-				GiveWeaponToPed(ped, weapons[j], 10000, false, true)
-			end
-
-			SetPedArmour(ped, armour)
-
-			SetPedRelationshipGroupHash(ped, groupHash)
-
-			if target then
-				SetPedHasAiBlip(ped, true)
-				SetPedAiBlipForcedOn(ped, true)
-				SetPedAiBlipHasCone(ped, false)
-
-				currentTargets.peds[#currentTargets.peds + 1] = ped
-				entities[#entities + 1] = ped
-			else
-				homies[#homies + 1] = ped
-			end
-		end
-	end
-	return driver
-end
-
-function spawnTarget(vehicle, coords, previousVehicle)
-	local vehicle = spawnVehicle(vehicle.model, coords, false)
-
-	local driver = fillVehicleWithPeds(vehicle, mode, true)
-
-	entities[#entities + 1] = vehicle
-
-	if not previousVehicle then
-		TaskVehicleDriveWander(driver, vehicle, 50.0, 956)
-		SetTaskVehicleChaseBehaviorFlag(driver, 32, true)
-	else
-		TaskVehicleEscort(driver, vehicle, previousVehicle, -1, 50.0, 956, 10.0, 0, 5.0)
-		SetTaskVehicleChaseBehaviorFlag(driver, 32, true)
-	end
-	return vehicle, GetEntityForwardVector(vehicle)
-end
-
-RegisterNetEvent('brownThunder:spawnVehicle', function(vehicle)
-	spawnVehicle(vehicle.model, false, true)
-end)
-
-function endRound(delete)
-	activeMode = false
-	currentTargets = {vehicles = {}, peds = {}}
-	for i = 1, #entities do
-		if delete then
-			DeleteEntity(entities[i])
+			members[#members].ped = CreatePedInsideVehicle(vehicle, 0, peds[math.random(#peds)], i, true, false)
 		else
-			SetEntityAsNoLongerNeeded(entities[i])
+			members[#members].ped = GetPedInVehicleSeat(vehicle, i)
 		end
-		entities[i] = nil
+		members[#members].player = IsPedAPlayer(members[#members].ped)
+	end
+	return members
+end
+
+function createUnit(unit, mission)
+	local target = unit.target > 0
+
+	unit.vehicle = spawnVehicle(unit.model, target and getSpawnPoint(mission), not target)
+	unit.members = fillVehicleWithPeds(unit.vehicle, target, mission)
+	unit.relationship = target and `TARGET` or `HOMIES`
+	unit.group = unit.members[1].player and GetPedGroupIndex(unit.members[1].ped) or CreateGroup()
+
+	for i = 1, #unit.members do
+		local member = unit.members[i]
+
+		SetEntityHealth(member.ped, GetPedMaxHealth(member.ped))
+		SetPedArmour(member.ped, 100)
+
+		if i == 1 then
+			member.leader = true
+			unit.leader = member
+
+			SetPedAsGroupLeader(member.ped, unit.group)
+		else
+			SetPedAsGroupMember(member.ped, unit.group)
+		end
+		SetPedNeverLeavesGroup(member.ped, true)
+
+		if not member.player then
+ 			SetPedRelationshipGroupHash(member.ped, unit.relationship)
+
+			SetPedAccuracy(member.ped, 60)
+			if target then
+				for j = 1, #mission.targetWeapons do
+					GiveWeaponToPed(member.ped, mission.targetWeapons[j], 10000, false, true)
+				end
+
+				SetPedHasAiBlip(member.ped, true)
+				SetPedAiBlipForcedOn(member.ped, true)
+				SetPedAiBlipHasCone(member.ped, false)
+
+				if member.leader then
+					TaskVehicleDriveWander(member.ped, unit.vehicle, 50.0, 956)
+					SetTaskVehicleChaseBehaviorFlag(member.ped, 32, true)
+				end
+			else
+				for j = 1, #Config.settings.homieWeapons do
+					GiveWeaponToPed(member.ped, Config.settings.homieWeapons[j], 10000, false, true)
+				end
+			end
+		end
+	end
+
+	unit.active = true
+	units[#units + 1] = unit
+end
+
+function endRound(cancel)
+	roundEnded = true
+	ClearInterval(heartbeat)
+	ClearInterval(updateAi)
+	for k, v in pairs(units) do
+		if v.target > 0 then
+			SetEntityAsNoLongerNeeded(v.vehicle)
+			for i = 1, #v.members do
+				local member = v.members[i]
+				SetEntityAsNoLongerNeeded(member.ped)
+			end
+			units[k] = nil
+		else
+			if cancel then
+				SetEntityAsNoLongerNeeded(v.vehicle)
+				for i = 1, #v.members do
+					local member = v.members[i]
+					if not member.player then
+						DeleteEntity(member.ped)
+					end
+				end
+				units[k] = nil
+			else
+				for i = 1, #v.members do
+					local member = v.members[i]
+					if member.alive then
+						SetEntityHealth(member.ped, GetPedMaxHealth(member.ped))
+						SetPedArmour(member.ped, 100)
+					end
+				end
+
+				local vehicle = GetVehiclePedIsIn(v.leader.ped)
+				if vehicle ~= 0 then
+					local extraHealth = Config.settings.vehicleHealthPerRound * 10
+					SetEntityHealth(vehicle, GetEntityHealth(vehicle) + extraHealth)
+					SetVehicleEngineHealth(vehicle, GetVehicleEngineHealth(vehicle) + extraHealth)
+					SetVehiclePetrolTankHealth(vehicle, GetVehiclePetrolTankHealth(vehicle) + extraHealth)
+					SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + extraHealth)
+					SetVehicleBodyHealth(vehicle, GetVehicleBodyHealth(vehicle) + extraHealth)
+					SetHeliMainRotorHealth(vehicle, GetHeliMainRotorHealth(vehicle) + extraHealth)
+					SetHeliTailRotorHealth(vehicle, GetHeliTailRotorHealth(vehicle) + extraHealth)
+					SetVehicleTyresCanBurst(vehicle, false)
+				end
+			end
+		end
+	end
+
+	if cancel then
+		TriggerServerEvent('brownThunder:endMission', kills)
+		units = {}
+		kills = 0
+		SetMaxWantedLevel(0)
+	else
+		TriggerServerEvent('brownThunder:nextRound')
 	end
 end
 
-function endMode()
-	endRound(true)
-	mode = nil
-	Player(GetPlayerServerId(PlayerId())).state:set('nextTargets', nil, true)
-	stats.kills = 0
-	stats.level = 0
-	for i = 1, #homies do
-		local homie = homies[i]
-		SetEntityAsNoLongerNeeded(homie)
+RegisterNetEvent('brownThunder:cancelMission', function(data)
+	if next(units) then
+		endRound(true)
+		if data then
+			Wait(1000)
+			TriggerServerEvent('brownThunder:nextRound', data)
+		end
 	end
-	homies = {}
-end
+end)
 
 function setAppropriateFiringPattern(ped)
 	local vehicle = GetVehiclePedIsIn(ped)
@@ -151,125 +241,103 @@ function setAppropriateFiringPattern(ped)
 	end
 end
 
-RegisterNetEvent('brownThunder:startRound', function(modeNumber, vehicle, targets, nextTargets)
-	mode = Config.modes[modeNumber]
-	sendLocal({'^1BROWN THUNDER', 'starting level ' .. stats.level + 1})
-	getModels(targets)
+RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets, vehicle)
+	getModels(targets, missionData)
 
 	if vehicle then
-		local vehicle = spawnVehicle(vehicle.model, false, true)
-		fillVehicleWithPeds(vehicle, mode, false)
+		createUnit({
+			target = 0,
+			model = vehicle
+		}, missionData)
 	end
 
-	local spawnPoint = getSpawnPoint()
-	local previousVehicle, forwardVector = spawnTarget(targets[1], spawnPoint)
-	if #targets > 1 then
-		for i = 2, #targets do
-			spawnPoint = getSpawnPoint(spawnPoint, forwardVector)
-			previousVehicle, forwardVector = spawnTarget(targets[i], spawnPoint, previousVehicle)
-		end
+	PlaySoundFrontend(-1, 'Checkpoint_Hit', 'GTAO_FM_Events_Soundset', 0)
+	SetMaxWantedLevel(5)
+	SetPlayerHomingRocketDisabled(PlayerId(), true)
+
+	lib.notify({
+		title = missionData.name .. ' - Round ' .. round .. ' started',
+		description = 'Happy hunting',
+		duration = 5000,
+		position = 'top'
+	})
+
+	for i = 1, #targets do
+		local target = targets[i]
+		createUnit({
+			target = i,
+			model = target.model,
+			task = 'wander'
+		}, missionData)
 	end
-	vectors = {}
+	focus = nil
 
-	SetPedRelationshipGroupHash(PlayerPedId(), `PLAYER`)
-
-	SetRelationshipGroupDontAffectWantedLevel(`PLAYER`, false)
-	SetRelationshipGroupDontAffectWantedLevel(`PRISONER`, false)
-
-	SetRelationshipBetweenGroups(5, `PRISONER`, `COP`)
-	SetRelationshipBetweenGroups(5, `COP`, `PRISONER`)
-	SetRelationshipBetweenGroups(5, `PRISONER`, `ARMY`)
-	SetRelationshipBetweenGroups(5, `ARMY`, `PRISONER`)
-	SetRelationshipBetweenGroups(5, `PRISONER`, `SECURITY_GUARD`)
-	SetRelationshipBetweenGroups(5, `SECURITY_GUARD`, `PRISONER`)
-	SetRelationshipBetweenGroups(5, `PRISONER`, `PRIVATE_SECURITY`)
-	SetRelationshipBetweenGroups(5, `PRIVATE_SECURITY`, `PRISONER`)
-
-	activeMode = true
-	mode.onRoundStart(mode, homies)
-
-	getModels(nextTargets)
-end)
-
-CreateThread(function()
-	while true do
-		Wait(0)
-		if activeMode then
-			if next(currentTargets.peds) then				
-				local kills = stats.kills
-				currentTargets.vehicles = {}
-				for k, v in pairs(currentTargets.peds) do
-					if IsPedDeadOrDying(v) then
-						currentTargets.peds[k] = nil
-						stats.kills += 1
-						mode.onKill()
-					else
-						local vehicle = GetVehiclePedIsIn(v)
-						if vehicle == 0 then
-							local pedPos = GetEntityCoords(v)
-							DrawMarker(2, pedPos.xy, pedPos.z + 1.5, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 0, 0, 100, true, true, 2, false, false, false, false)
-						elseif not currentTargets.vehicles[vehicle] then
-							currentTargets.vehicles[vehicle] = true
-							local model = GetEntityModel(vehicle)
-							local offset = vehicleOffset[model]
-							if not offset then
-								local minVec, maxVec = GetModelDimensions(model)
-								offset = vec(0, 0, math.max(minVec.z, maxVec.z) + 1)
-								vehicleOffset[model] = offset
+	roundEnded = false
+	heartbeat = SetInterval(function()
+		local vehicles = {}
+		local activeRound = false
+		local plyPed = PlayerPedId()
+		for k, v in pairs(units) do
+			if v.active then
+				local target = v.target > 0
+				activeRound = activeRound or target
+				local r = target and 255 or 0
+				local g = target and 0 or 255
+				local activeUnit = false
+				for i = 1, #v.members do
+					local member = v.members[i]
+					if member.ped ~= plyPed and member.alive then
+						if IsPedDeadOrDying(member.ped) or IsPedFatallyInjured(member.ped) then
+							member.alive = false
+							if target then
+								kills += 1
+								PlaySoundFrontend(-1, "Bomb_Disarmed", "GTAO_Speed_Convoy_Soundset", 0)
 							end
-							local vehPos = GetEntityCoords(vehicle)
-							DrawMarker(2, vehPos + offset, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 1.0, 1.0, 1.0, 255, 0, 0, 100, true, true, 2, false, false, false, false)
+						else
+							activeUnit = true
+							local vehicle = GetVehiclePedIsIn(member.ped)
+							if vehicle == 0 then
+								local pedPos = GetEntityCoords(member.ped)
+								DrawMarker(2, pedPos.xy, pedPos.z + 1.5, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 0.5, 0.5, 0.5, r, g, 0, 100, true, true, 2, false, false, false, false)
+							elseif not vehicles[vehicle] then
+								vehicles[vehicle] = true
+								local model = GetEntityModel(vehicle)
+								local offset = vehicleOffset[model]
+								if not offset then
+									local minVec, maxVec = GetModelDimensions(model)
+									offset = vec(0, 0, math.max(minVec.z, maxVec.z) + 1)
+									vehicleOffset[model] = offset
+								end
+								local vehPos = GetEntityCoords(vehicle)
+								DrawMarker(2, vehPos + offset, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 1.0, 1.0, 1.0, r, g, 0, 100, true, true, 2, false, false, false, false)
+							end
 						end
 					end
 				end
-				if stats.kills ~= kills then
-					sendLocal({'^1BROWN THUNDER', stats.kills .. ' dead'})
-				end
-			else
-				stats.level += 1
-				sendLocal({'^1BROWN THUNDER', 'level ' .. stats.level .. ' passed'})
-				TriggerServerEvent('brownThunder:nextRound')
-				endRound()
+				v.active = activeUnit
 			end
 		end
-	end
-end)
-
-CreateThread(function()
-	while true do
-		Wait(1000)
-		SetPlayerHomingRocketDisabled(PlayerId(), true)
-		if activeMode then
-			local plyPed = PlayerPedId()
-			local vehicle = GetVehiclePedIsIn(plyPed)
-
-			if mode.playerHealth == 'invincible' then
-				SetEntityInvincible(plyPed, true)
-			end
-
-			if vehicle ~= 0 then
-				if mode.vehicleHealth == 'invincible' then
-					SetEntityInvincible(vehicle, true)
-					SetHeliMainRotorHealth(vehicle, 5000)
-					SetHeliTailRotorHealth(vehicle, 5000)
-				elseif mode.vehicleHealth == 'standard' then
-					SetVehicleTyresCanBurst(vehicle, false)
+		if not activeRound and not roundEnded then
+			roundEnded = true
+			endRound()
+		end
+	end)
+	
+	updateAi = SetInterval(function()
+		for k, v in pairs(units) do
+			for i = 1, #v.members do
+				local member = v.members[i]
+				if member.alive and not member.player then
+					setAppropriateFiringPattern(member.ped)
 				end
 			end
-
-			for i = 1, #currentTargets.peds do
-				setAppropriateFiringPattern(currentTargets.peds[i])
-			end
-			for i = 1, #homies do
-				setAppropriateFiringPattern(homies[i])
-			end
 		end
-	end
+	end, 1000)
 end)
 
 function spawnVehicle(name, coords, set)
 	local plyPed = PlayerPedId()
-	local model = lib.requestModel(name, 5000)
+	local model = lib.requestModel(name, 1000)
 	if model then
 		local oldVeh, oldVehCoords, oldVehHeading, velocity, forwardVelocity, rotation
 		local peds = {[-1] = plyPed}
@@ -315,46 +383,8 @@ function spawnVehicle(name, coords, set)
 		end
 		return vehicle
 	else
-		sendLocal({'^1BROWN THUNDER', 'Unable to load vehicle model - ' .. name})
+		lib.notify({
+			description = 'Unable to load vehicle model - ' .. name
+		})
 	end
 end
-
-function sendLocal(args)
-	TriggerEvent('chat:addMessage', {args = args})
-end
-
---[[
-0000000000000000000001110111100
-FLAG ENABLED - CONVERTED INTEGER - DESCRIPTION
-00000000000000000000000000000001 - 1 - stop before vehicles
-00000000000000000000000000000010 - 2 - stop before peds
-00000000000000000000000000000100 - 4 - avoid vehicles
-00000000000000000000000000001000 - 8 - avoid empty vehicles
-00000000000000000000000000010000 - 16 - avoid peds
-00000000000000000000000000100000 - 32 - avoid objects
-00000000000000000000000001000000 - 64 - ?
-00000000000000000000000010000000 - 128 - stop at traffic lights
-00000000000000000000000100000000 - 256 - use blinkers
-00000000000000000000001000000000 - 512 - allow going wrong way (only does it if the correct lane is full, will try to reach the correct lane again as soon as possible)
-00000000000000000000010000000000 - 1024 - go in reverse gear (backwards)
-00000000000000000000100000000000 - 2048 - ?
-00000000000000000001000000000000 - 4096 - ?
-00000000000000000010000000000000 - 8192 - ?
-00000000000000000100000000000000 - 16384 - ?
-00000000000000001000000000000000 - 32768 - ?
-00000000000000010000000000000000 - 65536 - ?
-00000000000000100000000000000000 - 131072 - ?
-00000000000001000000000000000000 - 262144 - Take shortest path (Removes most pathing limits, the driver even goes on dirtroads)
-00000000000010000000000000000000 - 524288 - Probably avoid offroad?
-00000000000100000000000000000000 - 1048576 - ?
-00000000001000000000000000000000 - 2097152 - ?
-00000000010000000000000000000000 - 4194304 - Ignore roads (Uses local pathing, only works within 200~ meters around the player)
-00000000100000000000000000000000 - 8388608 - ?
-00000001000000000000000000000000 - 16777216 - Ignore all pathing (Goes straight to destination)
-00000010000000000000000000000000 - 33554432 - ?
-00000100000000000000000000000000 - 67108864 - ?
-00001000000000000000000000000000 - 134217728 - ?
-00010000000000000000000000000000 - 268435456 - ?
-00100000000000000000000000000000 - 536870912 - avoid highways when possible (will use the highway if there is no other way to get to the destination)
-01000000000000000000000000000000 - 1073741824 - ?
---]]

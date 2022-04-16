@@ -4,19 +4,22 @@ lua54 'yes'
 
 author "DokaDoka"
 description "DokaDoka's Brown Thunder"
-version "0.1.0"
+version "0.2.0"
 
 dependencies {
+	'oxmysql',
+	'ox_core',
 	'ox_lib',
-	'vein',
 }
 
 shared_scripts {
+	'@ox_core/imports.lua',
 	'@ox_lib/init.lua',
 	'shared/*.lua',
 }
 
 server_scripts {
+	'@oxmysql/lib/MySQL.lua',
 	'server/*.lua',
 }
 

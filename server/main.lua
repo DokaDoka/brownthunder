@@ -1,138 +1,71 @@
 local table = lib.table
+local vehicleSets = {}
+local instances = {}
 
-Data = {}
-Indexed = {}
-
-function data(name)
-	local func, err = load(LoadResourceFile('dd_society', 'data/'..name..'.lua'), name, 't')
-	assert(func, err == nil or '\n^1'..err..'^7')
-	return func()
-end
-
-Data.Vehicles = data('vehicles')
-Indexed.Vehicles = {}
-for i = 1, #Data.Vehicles do
-	Indexed.Vehicles[Data.Vehicles[i].model] = Data.Vehicles[i]
-end
-
-setmetatable(Config.vehicles, {
-	__index = function (table, key)
-		return {Indexed.Vehicles[key].model or key}
-  	end
-})
-
-for i = 1, #Config.modes do
-	local mode = Config.modes[i]
-	for j = 1, #mode.vehicle do
-		if type(mode.vehicle[j]) == 'string' then
-			mode.vehicle[j] = Config.vehicles[mode.vehicle[j]]
-			if mode.vehicle[j].build then
-				mode.options = mode.options or {}
-				mode.options[j] = table.deepclone(mode.vehicle[j])
-				mode.options[j].build = nil
-				mode.vehicle[j] = {}
-			end
-		end
-	end
-	for j = 1, #mode.targets do
-		local target = mode.targets[j]
+function getTargets(mission, targets, round)
+	vehicleSets[mission] = vehicleSets[mission] or {}
+	local vehicles = {}
+	for i = 1, #targets do
+		local target = targets[i]
 		if type(target) == 'table' then
-			for l = 1, #target do
-				target[l] = Config.vehicles[target[l]]
-				if target[l].build then
-					mode.targets[j].options = mode.targets[j].options or {}
-					mode.targets[j].options[l] = table.deepclone(target[l])
-					mode.targets[j].options[l].build = nil
-					target[l] = {}
+			local vehicleSet = vehicleSets[mission][i]
+			if not vehicleSet then
+				local column, values = next(target)
+				vehicleSet = MySQL.query.await('SELECT model FROM vehicle_data WHERE ?? IN (?)', {column, values})
+				vehicleSets[mission][i] = vehicleSet
+			end
+			vehicles[i] = vehicleSet[math.random(#vehicleSet)]
+		elseif target == 'repeat' then
+			local vehicleSet
+			for j = 1, #targets do
+				vehicleSet = vehicleSets[mission][i - j]
+				if vehicleSet then
+					vehicles[i] = vehicleSet[math.random(#vehicleSet)]
+					break
 				end
 			end
+		elseif target == 'copy' then
+			vehicles[i] = table.deepclone(vehicles[i - 1])
 		end
 	end
+	return vehicles
 end
 
-for i = 1, #Data.Vehicles do
-	local vehicle = Data.Vehicles[i]
-	for j = 1, #Config.modes do
-	local mode = Config.modes[j]
-		if mode.options then
-			for l = 1, #mode.options do
-				local round = mode.options[l]
-				for m = 1, #round do
-					local option = round[m]
-					for k, v in pairs(vehicle) do
-						if v == option then
-							mode.vehicle[l][#mode.vehicle[l] + 1] = vehicle.model
-							break
-						end
-					end
-				end
-			end 
-		end
-		for l = 1, #mode.targets do
-			local target = mode.targets[l]
-			if target?.options then
-				for m = 1, #target.options do
-					local round = target.options[m]
-					for n = 1, #round do
-						local option = round[n]
-						for k, v in pairs(vehicle) do
-							if v == option then
-								target[m][#target[m] + 1] = vehicle.model
-								break
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-end
+RegisterServerEvent('brownThunder:nextRound', function(data)
+	local source = source
+	instances[source] = instances[source] or {}
+	local instance = instances[source]
 
-for i = 1, #Config.modes do
-	local mode = Config.modes[i]
-	for j = 1, #mode.targets do
-		local target = mode.targets[j]
-		if target == 'repeat' then
-			mode.targets[j] = table.deepclone(mode.targets[j - 1])
-		end
-	end
-end
-
-lib.AddCommand('builtin.everyone', {'car', 'veh'}, function(source, args)
-	TriggerClientEvent('brownThunder:spawnVehicle', source, getVehicle(args.vehicle))
-end, {'vehicle:?string'})
-
-function getVehicle(vehicle)
-	if not vehicle or vehicle == 'random' then
-		return Data.Vehicles[math.random(#Data.Vehicles)]
-	end
-	return Indexed.Vehicles[vehicle]
-end
-
-RegisterServerEvent('brownThunder:nextRound', function(modeNumber, round)
-	local plyState = Player(source).state
-	local mode = Config.modes[modeNumber or plyState.mode]
-	local round = round or plyState.round + 1
-	local vehicle = false
-
-	if mode.vehicle[round] then
-		vehicle = getVehicle(mode.vehicle[round][math.random(#mode.vehicle[round])])
-	else
-		if #mode.vehicle > 1 then
-			local round = round % #mode.vehicle
-			if round == 0 then
-				round = #mode.vehicle
-			end
-			if mode.vehicle[round] then
-				vehicle = getVehicle(mode.vehicle[round][math.random(#mode.vehicle[round])])
-			end
-		end
+	if data?.round and instance.round then
+		TriggerClientEvent('brownThunder:cancelMission', source, data)
+		return
 	end
 
-	local targets = plyState.nextTargets or mode.getTargets(mode.targets, round)
-	plyState.nextTargets = mode.getTargets(mode.targets, round + 1)
-	plyState.round = round
-	plyState.mode = modeNumber or plyState.mode
+	local round = data?.round or instance.round + 1
+	local missionData = Config.missions[data?.mission or instance.mission]
+	local targets = getTargets(missionData.name, missionData.targets, round)
 
-	TriggerClientEvent('brownThunder:startRound', source, plyState.mode, vehicle, targets, plyState.nextTargets)
+	instance.round = round
+	instance.mission = missionData.name
+	instance.vehicle = instance.vehicle or data?.vehicle
+
+	TriggerClientEvent('brownThunder:startRound', source, missionData, round, targets, data?.vehicle)
+end)
+
+RegisterServerEvent('brownThunder:endMission', function(kills)
+	local instance = instances[source]
+	local player = instance(source)
+
+	if instance.round > 1 then
+		MySQL.insert('INSERT INTO scores (charid, name, round, kills, mission, vehicle) VALUES (?, ?, ?, ?, ?, ?)', {player.charid, player.firstname .. ' ' .. player.lastname, instance.round, kills, instance.mission, instance.vehicle})
+	end
+	instance.round = nil
+	instance.mission = nil
+	instance.vehicle = nil
+end)
+
+RegisterNetEvent('ox:playerDeath', function(dead)
+	if dead then
+		TriggerClientEvent('brownThunder:cancelMission', source)
+	end
 end)
