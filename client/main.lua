@@ -275,6 +275,9 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 	roundEnded = false
 	heartbeat = SetInterval(function()
 		local vehicles = {}
+		local targetsRemaining = 0
+		local homies = 0
+		local aliveHomies = 0
 		local activeRound = false
 		local plyPed = PlayerPedId()
 		for k, v in pairs(units) do
@@ -286,6 +289,10 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 				local activeUnit = false
 				for i = 1, #v.members do
 					local member = v.members[i]
+					if not target and not member.player then
+						homies += 1
+					end
+					
 					if member.ped ~= plyPed and member.alive then
 						if IsPedDeadOrDying(member.ped) or IsPedFatallyInjured(member.ped) then
 							member.alive = false
@@ -295,6 +302,12 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 							end
 						else
 							activeUnit = true
+							if target then 
+								targetsRemaining += 1 
+							else
+								aliveHomies += 1
+							end
+
 							local vehicle = GetVehiclePedIsIn(member.ped)
 							if vehicle == 0 then
 								local pedPos = GetEntityCoords(member.ped)
@@ -321,6 +334,19 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 			roundEnded = true
 			endRound()
 		end
+
+		local vehicleHealth = math.ceil(GetVehicleEngineHealth(GetVehiclePedIsIn(plyPed))/10)
+		SetTextFont(0)
+		SetTextProportional(1)
+		SetTextScale(0.0, 0.5)
+		SetTextColour(128, 128, 128, 255)
+		SetTextDropshadow(0, 0, 0, 0, 255)
+		SetTextEdge(1, 0, 0, 0, 255)
+		SetTextDropShadow()
+		SetTextOutline()
+		SetTextEntry("STRING")
+		AddTextComponentString(missionData.name .. '\nRound: ' .. round .. '\nKills: ' .. kills .. '\nTargets Remaining: ' .. targetsRemaining .. '\nHomies: ' .. aliveHomies .. '/' .. homies .. '\nVehicle Health: ' .. vehicleHealth .. '%')
+		DrawText(0.8, 0.5)
 	end)
 	
 	updateAi = SetInterval(function()
