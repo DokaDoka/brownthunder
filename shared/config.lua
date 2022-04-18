@@ -121,7 +121,8 @@ Config = {
 			description = 'Hunt a triplet of random targets',
 			category = 'Static',
 
-			spawn = 'dispersed',
+			cluster = false,
+			distance = {500, 1500},
 
 			targetPeds = 'prisoners',
 			targetWeapons = {`WEAPON_ASSAULTRIFLE`, `WEAPON_COMPACTRIFLE`, `WEAPON_MICROSMG`, `WEAPON_SAWNOFFSHOTGUN`},
@@ -136,8 +137,9 @@ Config = {
 			description = 'Hunt 3 armoured targets',
 			category = 'Static',
 
-			spawn = 'cluster',
-
+			cluster = true,
+			distance = {500, 1500},
+			
 			targetPeds = 'bodyguard',
 			targetWeapons = {`WEAPON_APPISTOL`, `WEAPON_CARBINERIFLE`},
 			targets = {

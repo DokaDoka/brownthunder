@@ -1,10 +1,11 @@
+local glm = require 'glm'
 local vehicleOffset = {}
 local units = {}
 local roundEnded
 local kills = 0
 local heartbeat, updateAi
 
-local focus
+local clusterCount, focus = 0
 local spawns = {}
 
 function setRelationships()
@@ -42,17 +43,60 @@ function setRelationships()
 end
 setRelationships()
 
+local points = {
+	vec(-1020, -3578),
+	vec(-3428, 965),
+	vec(3983, 3638),
+	vec(57, 7240)
+}
+
+local x, y = {}, {}
+for i = 1, #points do
+	x[i] = points[i].x
+	y[i] = points[i].y
+end
+
+local minX = math.min(table.unpack(x))
+local maxX = math.max(table.unpack(x))
+local minY = math.min(table.unpack(y))
+local maxY = math.max(table.unpack(y))
+local r = 2000
+
+local mapArea = glm.polygon.new({
+	vec(maxX - r, maxY, 0),
+	vec(maxX, maxY - r, 0),
+	vec(maxX, minY + r, 0),
+	vec(maxX - r, minY, 0),
+	vec(minX + r, minY, 0),
+	vec(minX, minY + r, 0),
+	vec(minX, maxY - r, 0),
+	vec(minX + r, maxY, 0),
+})
+
 function getSpawnPoint(mission)
-	local plyPed, outPosition, outHeading = PlayerPedId()
+	local plyPed = PlayerPedId()
 	local plyPos = GetEntityCoords(plyPed)
-	local inHeading, inPos = math.random(360)
+	local point, contains, outPosition, outHeading
+
+	if not mission.cluster or not focus then
+		repeat
+			point = vec(math.random(minX, maxX), math.random(minY, maxY), 0)
+			contains = mapArea:contains(point)
+			local distance = #(plyPos - point)
+			if distance < mission.distance[1] or distance > mission.distance[2] then
+				point = nil
+			end
+		until point and contains
+	end
+
 	repeat
-		if mission.spawn == 'dispersed' then
-			inPos = (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * math.random(500, 1500)) + plyPos
-		elseif mission.spawn == 'cluster' then
-			focus = focus or (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * math.random(500, 1500)) + plyPos
-			inHeading = math.random(360)
-			inPos = (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * 25) + focus
+		local inPos
+		if mission.cluster then
+			focus = focus or point
+			local inHeading = math.random(360)
+			inPos = (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * 10) + focus
+		else
+			inPos = point
 		end
 
 		_, outPosition, outHeading = GetNthClosestVehicleNodeWithHeading(inPos.x, inPos.y, inPos.z, math.random(10), false, false, false)
