@@ -144,5 +144,19 @@ Config = {
 				{model = {'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'}},
 			},
 		},
+		['Lost MC'] = {
+			name = 'Lost MC',
+			description = 'Hunt Lost MC members',
+
+			clusterSize = 0,
+			distance = {500, 1500},
+			escalation = 'repeat',
+
+			targetPeds = 'lost',
+			targetWeapons = {`WEAPON_ASSAULTRIFLE`, `WEAPON_COMPACTRIFLE`, `WEAPON_MICROSMG`, `WEAPON_SAWNOFFSHOTGUN`},
+			targets = {
+				{model = {'zombieb', 'hexer', 'diablous', 'innovation', 'daemon', 'slamvan2', 'gburrito2', 'lectro', 'sovereign', 'ratloader2'}},
+			},
+		},
 	},
 }
