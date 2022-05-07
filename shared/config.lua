@@ -139,7 +139,7 @@ Config = {
 
 			cluster = true,
 			distance = {500, 1500},
-			
+
 			targetPeds = 'bodyguard',
 			targetWeapons = {`WEAPON_APPISTOL`, `WEAPON_CARBINERIFLE`},
 			targets = {

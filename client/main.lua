@@ -17,13 +17,13 @@ function setRelationships()
 
 	SetRelationshipBetweenGroups(0, `HOMIES`, `PLAYER`)
 	SetRelationshipBetweenGroups(0, `PLAYER`, `HOMIES`)
-	
+
 	SetRelationshipBetweenGroups(5, `TARGET`, `PLAYER`)
 	SetRelationshipBetweenGroups(5, `PLAYER`, `TARGET`)
-	
+
 	SetRelationshipBetweenGroups(5, `HOMIES`, `TARGET`)
 	SetRelationshipBetweenGroups(5, `TARGET`, `HOMIES`)
-	
+
 	SetRelationshipBetweenGroups(5, `HOMIES`, `COP`)
 	SetRelationshipBetweenGroups(5, `TARGET`, `COP`)
 	SetRelationshipBetweenGroups(5, `COP`, `HOMIES`)
@@ -336,7 +336,7 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 					if not target and not member.player then
 						homies += 1
 					end
-					
+
 					if member.ped ~= plyPed and member.alive then
 						if IsPedDeadOrDying(member.ped) or IsPedFatallyInjured(member.ped) then
 							member.alive = false
@@ -346,8 +346,8 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 							end
 						else
 							activeUnit = true
-							if target then 
-								targetsRemaining += 1 
+							if target then
+								targetsRemaining += 1
 							else
 								aliveHomies += 1
 							end
@@ -392,7 +392,7 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 		AddTextComponentString(missionData.name .. '\nRound: ' .. round .. '\nKills: ' .. kills .. '\nTargets Remaining: ' .. targetsRemaining .. '\nHomies: ' .. aliveHomies .. '/' .. homies .. '\nVehicle Health: ' .. vehicleHealth .. '%')
 		DrawText(0.8, 0.5)
 	end)
-	
+
 	updateAi = SetInterval(function()
 		for k, v in pairs(units) do
 			for i = 1, #v.members do
