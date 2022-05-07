@@ -383,7 +383,8 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 			endRound()
 		end
 
-		local vehicleHealth = math.ceil(GetVehicleEngineHealth(GetVehiclePedIsIn(plyPed))/10)
+		local engineHealth = math.ceil(GetVehicleEngineHealth(GetVehiclePedIsIn(plyPed))/10)
+		local tankHealth = math.ceil(GetVehiclePetrolTankHealth(GetVehiclePedIsIn(plyPed))/10)
 		SetTextFont(0)
 		SetTextProportional(1)
 		SetTextScale(0.0, 0.5)
@@ -393,7 +394,7 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 		SetTextDropShadow()
 		SetTextOutline()
 		SetTextEntry("STRING")
-		AddTextComponentString(missionData.name .. '\nRound: ' .. round .. '\nKills: ' .. kills .. '\nTargets Remaining: ' .. targetsRemaining .. '\nHomies: ' .. aliveHomies .. '/' .. homies .. '\nVehicle Health: ' .. vehicleHealth .. '%')
+		AddTextComponentString(string.strconcat(missionData.name, '\nRound: ', round, '\nKills: ', kills, '\nTargets: ', targetsRemaining, '\nHomies: ', aliveHomies, '/', homies, '\nEngine Health: ', engineHealth, '%\nTank Health: ', tankHealth, '%'))
 		DrawText(0.8, 0.5)
 	end)
 
