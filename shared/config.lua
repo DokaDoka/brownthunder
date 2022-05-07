@@ -107,7 +107,7 @@ Config = {
 		homies = 'business',
 		homieWeapons = {`WEAPON_MICROSMG`, `WEAPON_COMBATMG_MK2`},
 
-		vehicleHealthPerRound = 100,
+		vehicleHealthPerRound = 50,
 
 		vehicles = {
 			['Savage'] = {vehicle = 'savage'},
