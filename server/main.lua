@@ -42,7 +42,18 @@ RegisterServerEvent('brownThunder:nextRound', function(data)
 	end
 
 	local round = data?.round or instance.round + 1
-	local missionData = Config.missions[data?.mission or instance.mission]
+	local missionData = table.deepclone(Config.missions[data?.mission or instance.mission])
+
+	if missionData.escalation and #missionData.targets < round then
+		for i = #missionData.targets + 1, round do
+			if missionData.clusterSize > 0 and i - 1 % missionData.clusterSize == 0 then
+				missionData.targets[i] = table.deepclone(missionData.targets[1])
+			else
+				missionData.targets[i] = missionData.escalation
+			end
+		end
+	end
+
 	local targets = getTargets(missionData.name, missionData.targets, round)
 
 	instance.round = round

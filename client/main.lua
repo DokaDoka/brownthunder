@@ -1,12 +1,11 @@
 local glm = require 'glm'
 local vehicleOffset = {}
-local units = {}
+local units, clusterLeads = {}, {}
 local roundEnded
 local kills = 0
 local heartbeat, updateAi
 
-local clusterCount, focus = 0
-local spawns = {}
+local spawns, focus = {}
 
 function setRelationships()
 	AddRelationshipGroup('HOMIES')
@@ -43,76 +42,47 @@ function setRelationships()
 end
 setRelationships()
 
-local points = {
-	vec(-1020, -3578),
-	vec(-3428, 965),
-	vec(3983, 3638),
-	vec(57, 7240)
-}
+local extremes = {min = vec(-3428, -3578), max = vec(3983, 7240)}
 
-local x, y = {}, {}
-for i = 1, #points do
-	x[i] = points[i].x
-	y[i] = points[i].y
-end
-
-local minX = math.min(table.unpack(x))
-local maxX = math.max(table.unpack(x))
-local minY = math.min(table.unpack(y))
-local maxY = math.max(table.unpack(y))
-local r = 2000
-
-local mapArea = glm.polygon.new({
-	vec(maxX - r, maxY, 0),
-	vec(maxX, maxY - r, 0),
-	vec(maxX, minY + r, 0),
-	vec(maxX - r, minY, 0),
-	vec(minX + r, minY, 0),
-	vec(minX, minY + r, 0),
-	vec(minX, maxY - r, 0),
-	vec(minX + r, maxY, 0),
-})
-
-function getSpawnPoint(mission)
+function getSpawnPoint(mission, round)
 	local plyPed = PlayerPedId()
-	local plyPos = GetEntityCoords(plyPed)
-	local point, contains, outPosition, outHeading
+	local point, heading = focus
 
-	if not mission.cluster or not focus then
-		repeat
-			point = vec(math.random(minX, maxX), math.random(minY, maxY), 0)
-			contains = mapArea:contains(point)
-			local distance = #(plyPos - point)
-			if distance < mission.distance[1] or distance > mission.distance[2] then
+	while not point do
+		point = vec(math.random(extremes.min.x, extremes.max.x), math.random(extremes.min.y, extremes.max.y), 0)
+		local plyPos = GetEntityCoords(plyPed)
+		local distance = #(plyPos - point)
+		if distance > mission.distance[1] and distance < mission.distance[2] then
+			_, point, heading = GetClosestVehicleNodeWithHeading(point.x, point.y, point.z, 1, 3.0, 0)
+			distance = #(plyPos - point)
+			if distance < mission.distance[1] and distance > mission.distance[2] then
 				point = nil
 			end
-		until point and contains
+		else
+			point = nil
+		end
 	end
 
-	repeat
-		local inPos
-		if mission.cluster then
-			focus = focus or point
-			local inHeading = math.random(360)
-			inPos = (vec(math.cos(inHeading), math.sin(inHeading), 0.0) * 10) + focus
-		else
-			inPos = point
-		end
-
-		_, outPosition, outHeading = GetNthClosestVehicleNodeWithHeading(inPos.x, inPos.y, inPos.z, math.random(10), false, false, false)
-
-		for i = 1, #spawns do
-			local spawn = spawns[i]
-			if #(spawn - outPosition) < 5 then
-				outPosition = nil
-				break
+	if mission.clusterSize ~= 1 then
+		focus = point
+		point = nil
+		local offset = round * 10
+		while not point do
+			point = focus + vec(math.random(-offset, offset), math.random(-offset, offset), 0)
+			_, point, heading = GetClosestVehicleNodeWithHeading(point.x, point.y, point.z, 1, 3.0, 0)
+			for i = 1, #spawns do
+				if #(spawns[i] - point) < 5 then
+					point = nil
+					break
+				end
 			end
+			offset += 1
 		end
-	until outPosition
+	end
 
-	spawns[#spawns + 1] = outPosition
-	
-	return vec(outPosition.xyz, outHeading)
+	spawns[#spawns + 1] = point
+
+	return vec(point.xyz, heading)
 end
 
 function getModels(targets, mission)
@@ -150,10 +120,10 @@ function fillVehicleWithPeds(vehicle, target, mission)
 	return members
 end
 
-function createUnit(unit, mission)
+function createUnit(unit, mission, round)
 	local target = unit.target > 0
 
-	unit.vehicle = spawnVehicle(unit.model, target and getSpawnPoint(mission), not target)
+	unit.vehicle = spawnVehicle(unit.model, target and getSpawnPoint(mission, round), not target)
 	unit.members = fillVehicleWithPeds(unit.vehicle, target, mission)
 	unit.relationship = target and `TARGET` or `HOMIES`
 	unit.group = unit.members[1].player and GetPedGroupIndex(unit.members[1].ped) or CreateGroup()
@@ -186,11 +156,6 @@ function createUnit(unit, mission)
 				SetPedHasAiBlip(member.ped, true)
 				SetPedAiBlipForcedOn(member.ped, true)
 				SetPedAiBlipHasCone(member.ped, false)
-
-				if member.leader then
-					TaskVehicleDriveWander(member.ped, unit.vehicle, 50.0, 956)
-					SetTaskVehicleChaseBehaviorFlag(member.ped, 32, true)
-				end
 			else
 				for j = 1, #Config.settings.homieWeapons do
 					GiveWeaponToPed(member.ped, Config.settings.homieWeapons[j], 10000, false, true)
@@ -214,6 +179,7 @@ function endRound(cancel)
 				local member = v.members[i]
 				SetEntityAsNoLongerNeeded(member.ped)
 			end
+			clusterLeads[v.cluster] = nil
 			units[k] = nil
 		else
 			if cancel then
@@ -270,6 +236,27 @@ RegisterNetEvent('brownThunder:cancelMission', function(data)
 	end
 end)
 
+function setClusterBehavior(cluster)
+	for i = 1, #units do
+		local unit = units[i]
+		if unit.active and unit.cluster == cluster then
+			if unit.target > 0 then
+				if not clusterLeads[unit.cluster] then
+					unit.clusterLead = true
+					clusterLeads[unit.cluster] = unit
+				end
+
+				if unit.clusterLead then
+					TaskVehicleDriveWander(unit.leader.ped, unit.vehicle, 50.0, 956)
+				else
+					TaskVehicleEscort(unit.leader.ped, unit.vehicle, clusterLeads[cluster].vehicle, -1, 50.0, 956, 5.0, 0, 1.0)
+				end
+				SetTaskVehicleChaseBehaviorFlag(unit.leader.ped, 32, true)
+			end
+		end
+	end
+end
+
 function setAppropriateFiringPattern(ped)
 	local vehicle = GetVehiclePedIsIn(ped)
 	if ControlMountedWeapon(ped) then
@@ -291,8 +278,9 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 	if vehicle then
 		createUnit({
 			target = 0,
-			model = vehicle
-		}, missionData)
+			cluster = 0,
+			model = vehicle,
+		}, missionData, round)
 	end
 
 	PlaySoundFrontend(-1, 'Checkpoint_Hit', 'GTAO_FM_Events_Soundset', 0)
@@ -306,15 +294,25 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 		position = 'top'
 	})
 
+	local cluster = 1
 	for i = 1, #targets do
 		local target = targets[i]
 		createUnit({
 			target = i,
+			cluster = cluster,
 			model = target.model,
-			task = 'wander'
-		}, missionData)
+		}, missionData, round)
+
+		if missionData.clusterSize > 0 and i % missionData.clusterSize == 0 then
+			cluster += 1
+			focus = nil
+		end
 	end
 	focus = nil
+
+	for i = 1, cluster do
+		setClusterBehavior(i)
+	end
 
 	roundEnded = false
 	heartbeat = SetInterval(function()
@@ -372,6 +370,11 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 					end
 				end
 				v.active = activeUnit
+				if not v.active and v.clusterLead then
+					v.clusterLead = false
+					clusterLeads[v.cluster] = false
+					setClusterBehavior(v.cluster)
+				end
 			end
 		end
 		if not activeRound and not roundEnded then

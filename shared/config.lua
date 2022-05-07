@@ -119,33 +119,29 @@ Config = {
 		['Brown Thunder'] = {
 			name = 'Brown Thunder',
 			description = 'Hunt a triplet of random targets',
-			category = 'Static',
 
-			cluster = false,
+			clusterSize = 3,
 			distance = {500, 1500},
+			escalation = 'copy',
 
 			targetPeds = 'prisoners',
 			targetWeapons = {`WEAPON_ASSAULTRIFLE`, `WEAPON_COMPACTRIFLE`, `WEAPON_MICROSMG`, `WEAPON_SAWNOFFSHOTGUN`},
 			targets = {
 				{type = {'automobile', 'bike'}},
-				'copy',
-				'copy',
 			}
 		},
 		['Motorcade'] = {
 			name = 'Motorcade',
 			description = 'Hunt 3 armoured targets',
-			category = 'Static',
 
-			cluster = true,
+			clusterSize = 3,
 			distance = {500, 1500},
+			escalation = 'repeat',
 
 			targetPeds = 'bodyguard',
 			targetWeapons = {`WEAPON_APPISTOL`, `WEAPON_CARBINERIFLE`},
 			targets = {
 				{model = {'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'}},
-				'repeat',
-				'repeat',
 			},
 		},
 	},

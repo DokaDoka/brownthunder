@@ -4,7 +4,7 @@ lua54 'yes'
 
 author "DokaDoka"
 description "DokaDoka's Brown Thunder"
-version "0.3.0"
+version "0.4.0"
 
 dependencies {
 	'oxmysql',
