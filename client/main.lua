@@ -458,3 +458,15 @@ function spawnVehicle(name, coords, set)
 		})
 	end
 end
+
+RegisterCommand('bigMap', function()
+	if not IsBigmapActive() then
+		SetBigmapActive(true, false)
+	elseif not IsBigmapFull() then
+		SetBigmapActive(true, true)
+	else
+		SetBigmapActive(false, false)
+	end
+end)
+
+RegisterKeyMapping('bigMap', 'Toggle Map', 'keyboard', 'z')
