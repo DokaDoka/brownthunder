@@ -107,15 +107,16 @@ function fillVehicleWithPeds(vehicle, target, mission)
 
 	local seats = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle)) - 2
 	for i = -1, seats do
-		members[#members + 1] = {
-			alive = true
-		}
+		local member = {alive = true}
+
 		if IsVehicleSeatFree(vehicle, i) then
-			members[#members].ped = CreatePedInsideVehicle(vehicle, 0, peds[math.random(#peds)], i, true, false)
+			member.ped = CreatePedInsideVehicle(vehicle, 0, peds[math.random(#peds)], i, true, false)
 		else
-			members[#members].ped = GetPedInVehicleSeat(vehicle, i)
+			member.ped = GetPedInVehicleSeat(vehicle, i)
 		end
-		members[#members].player = IsPedAPlayer(members[#members].ped)
+		member.player = IsPedAPlayer(member.ped)
+
+		members[#members + 1] = member
 	end
 	return members
 end
