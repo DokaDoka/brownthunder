@@ -55,7 +55,7 @@ function getSpawnPoint(mission, round)
 		if distance > mission.distance[1] and distance < mission.distance[2] then
 			_, point, heading = GetClosestVehicleNodeWithHeading(point.x, point.y, point.z, 1, 3.0, 0)
 			distance = #(plyPos - point)
-			if distance < mission.distance[1] and distance > mission.distance[2] then
+			if distance < mission.distance[1] or distance > mission.distance[2] then
 				point = nil
 			end
 		else
