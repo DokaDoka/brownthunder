@@ -46,7 +46,7 @@ RegisterServerEvent('brownThunder:nextRound', function(data)
 
 	if missionData.escalation and #missionData.targets < round then
 		for i = #missionData.targets + 1, round do
-			if missionData.clusterSize > 0 and i - 1 % missionData.clusterSize == 0 then
+			if missionData.clusterSize > 0 and (i - 1) % missionData.clusterSize == 0 then
 				missionData.targets[i] = table.deepclone(missionData.targets[1])
 			else
 				missionData.targets[i] = missionData.escalation
