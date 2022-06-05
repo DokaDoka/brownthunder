@@ -340,7 +340,11 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 					end
 
 					if member.ped ~= plyPed and member.alive then
-						if IsPedDeadOrDying(member.ped) or IsPedFatallyInjured(member.ped) or IsPedInWrithe(member.ped) then
+						if IsPedInWrithe(member.ped) then
+							SetEntityHealth(member.ped, 0)
+						end
+
+						if IsPedDeadOrDying(member.ped) or IsPedFatallyInjured(member.ped) then
 							member.alive = false
 							if target then
 								kills += 1
