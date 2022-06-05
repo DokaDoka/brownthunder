@@ -7,6 +7,8 @@ local heartbeat, updateAi
 
 local spawns, focus = {}
 
+local display = {}
+
 function setRelationships()
 	AddRelationshipGroup('HOMIES')
 	AddRelationshipGroup('TARGET')
@@ -222,6 +224,7 @@ function endRound(cancel)
 		units = {}
 		kills = 0
 		SetMaxWantedLevel(0)
+		lib.hideTextUI()
 	else
 		TriggerServerEvent('brownThunder:nextRound')
 	end
@@ -383,19 +386,20 @@ RegisterNetEvent('brownThunder:startRound', function(missionData, round, targets
 			endRound()
 		end
 
-		local engineHealth = math.ceil(GetVehicleEngineHealth(GetVehiclePedIsIn(plyPed))/10)
-		local tankHealth = math.ceil(GetVehiclePetrolTankHealth(GetVehiclePedIsIn(plyPed))/10)
-		SetTextFont(0)
-		SetTextProportional(1)
-		SetTextScale(0.0, 0.5)
-		SetTextColour(128, 128, 128, 255)
-		SetTextDropshadow(0, 0, 0, 0, 255)
-		SetTextEdge(1, 0, 0, 0, 255)
-		SetTextDropShadow()
-		SetTextOutline()
-		SetTextEntry("STRING")
-		AddTextComponentString(string.strconcat(missionData.name, '\nRound: ', round, '\nKills: ', kills, '\nTargets: ', targetsRemaining, '\nHomies: ', aliveHomies, '/', homies, '\nEngine Health: ', engineHealth, '%\nTank Health: ', tankHealth, '%'))
-		DrawText(0.8, 0.5)
+		local newDisplay = {
+			name = missionData.name,
+			round = round,
+			kills = kills,
+			targets = targetsRemaining,
+			aliveHomies = aliveHomies,
+			homies = homies,
+			engineHealth = math.ceil(GetVehicleEngineHealth(cache.vehicle)/10),
+			tankHealth = math.ceil(GetVehiclePetrolTankHealth(cache.vehicle)/10)
+		}
+		if newDisplay.targets > 0 and not table.matches(display, newDisplay) then
+			display = newDisplay
+			lib.showTextUI(('%s  \nRound: %s  \nKills: %s  \nTargets: %s  \nHomies: %s/%s  \nEngine Health: %s%%  \nTank Health: %s%%'):format(display.name, display.round, display.kills, display.targets, display.aliveHomies, display.homies, display.engineHealth, display.tankHealth))
+		end
 	end)
 
 	updateAi = SetInterval(function()
