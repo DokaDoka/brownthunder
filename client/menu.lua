@@ -1,33 +1,47 @@
-local table = lib.table
-
-local data = {
-	id = 'vigilante_missions',
-	title = 'Vigilante Missions'
-}
-
-local options = Config.missions
-local vehicles = Config.settings.vehicles
-for k, v in pairs(options) do
-	v.menu = 'mission_vehicle' .. v.name
-	data[#data + 1] = {
-		id = v.menu,
-		menu = data.id,
-		title = 'Mission Vehicle',
-		options = table.deepclone(vehicles)
+local missions = {}
+for k, v in pairs(Config.missions) do
+	missions[#missions + 1] = {
+		value = k, label = k
 	}
-	for k2, v2 in pairs(data[#data].options) do
-		v2.serverEvent = 'brownThunder:nextRound'
-		v2.args = {mission = v.name, vehicle = v2.vehicle, round = 1}
-	end
 end
 
-options.Cancel = {event = 'brownThunder:cancelMission'}
-data.options = options
+table.sort(missions, function(a, b)
+	return a.label < b.label
+end)
 
-lib.registerContext(data)
+local vehicles = {}
+for i = 1, #Config.settings.vehicles do
+	local vehicle = Config.settings.vehicles[i]
+	vehicles[i] = {
+		value = vehicle,
+		label = vehicle:gsub('^%l', string.upper)
+	}
+end
 
 RegisterCommand('btMenu', function()
-    lib.showContext('vigilante_missions')
+	local data = lib.inputDialog('Mission Settings', {
+		{
+			type = 'select',
+			label = 'Mission',
+			options = missions
+		},
+		{
+			type = 'select',
+			label = 'Vehicle',
+			options = vehicles
+		},
+	})
+
+	if data[1] and data[2] then
+		data = {
+			mission = data[1],
+			vehicle = data[2],
+			round = 1
+		}
+		TriggerServerEvent('brownThunder:nextRound', data)
+	else
+		TriggerServerEvent('brownThunder:cancelMission')
+	end
 end)
 
 RegisterKeyMapping('btMenu', 'Open Menu', 'keyboard', 'i')

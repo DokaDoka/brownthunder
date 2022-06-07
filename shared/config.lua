@@ -110,9 +110,9 @@ Config = {
 		vehicleHealthPerRound = 50,
 
 		vehicles = {
-			['Savage'] = {vehicle = 'savage'},
-			['Hunter'] = {vehicle = 'hunter'},
-			['Buzzard'] = {vehicle = 'buzzard'},
+			'buzzard',
+			'hunter',
+			'savage',
 		},
 	},
 	missions = {

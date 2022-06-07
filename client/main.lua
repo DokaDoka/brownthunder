@@ -1,4 +1,5 @@
 local glm = require 'glm'
+local table = lib.table
 local vehicleOffset = {}
 local units, clusterLeads = {}, {}
 local roundEnded
