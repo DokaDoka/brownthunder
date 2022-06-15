@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS `scores` (
   `kills` INT(11) NOT NULL,
   `mission` VARCHAR(50) NOT NULL,
   `vehicle` VARCHAR(50) NOT NULL,
+  `time` INT(11) NOT NULL,
+  `version` VARCHAR(10) NOT NULL,
 
   KEY `id` (`id`)
 );

@@ -1,3 +1,4 @@
+local version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
 local instances = {}
 
 local function getTargets(targets, round, cluster)
@@ -109,6 +110,7 @@ RegisterServerEvent('brownThunder:nextRound', function(data)
 	instance.round = round
 	instance.mission = missionData.name
 	instance.vehicle = instance.vehicle or data?.vehicle
+	instance.timestamp = instance.timestamp or os.time()
 
 	TriggerClientEvent('brownThunder:startRound', source, missionData, round, targets, data?.vehicle)
 end)
@@ -118,7 +120,7 @@ RegisterServerEvent('brownThunder:endMission', function(kills)
 	local player = lib.getPlayer(source)
 
 	if instance.round > 1 then
-		MySQL.insert('INSERT INTO scores (charid, name, round, kills, mission, vehicle) VALUES (?, ?, ?, ?, ?, ?)', {player.charid, player.firstname .. ' ' .. player.lastname, instance.round, kills, instance.mission, instance.vehicle})
+		MySQL.insert('INSERT INTO scores (charid, name, round, kills, mission, vehicle, time, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', {player.charid, player.firstname .. ' ' .. player.lastname, instance.round, kills, instance.mission, instance.vehicle, os.time() - instance.timestamp, version})
 	end
 	instance.round = nil
 	instance.mission = nil
