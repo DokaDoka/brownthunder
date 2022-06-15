@@ -122,13 +122,30 @@ Config = {
 
 			clusterSize = 3,
 			distance = {500, 1500},
-			escalation = 'copy',
 
 			targetPeds = 'prisoners',
 			targetWeapons = {`WEAPON_ASSAULTRIFLE`, `WEAPON_COMPACTRIFLE`, `WEAPON_MICROSMG`, `WEAPON_SAWNOFFSHOTGUN`},
 			targets = {
-				{type = {'automobile', 'bike'}},
-			}
+				{
+					allow = {
+						type = {
+							'automobile',
+							'bike'
+						},
+					},
+				},
+			},
+			getTargets = function(targets, round, cluster)
+				local vehicles = {}
+				for i = 1, math.ceil(round / cluster) do
+					local vehicle = targets[1][math.random(#targets[1])]
+					for j = 1, cluster do
+						vehicles[#vehicles + 1] = vehicle
+					end
+				end
+
+				return vehicles
+			end
 		},
 		['Motorcade'] = {
 			name = 'Motorcade',
@@ -136,13 +153,33 @@ Config = {
 
 			clusterSize = 3,
 			distance = {500, 1500},
-			escalation = 'repeat',
 
 			targetPeds = 'bodyguard',
 			targetWeapons = {`WEAPON_APPISTOL`, `WEAPON_CARBINERIFLE`},
 			targets = {
-				{model = {'cog552', 'cognoscenti2', 'schafter5', 'schafter6', 'baller5', 'baller6', 'xls2', 'limo2'}},
+				{
+					allow = {
+						model = {
+							'cog552',
+							'cognoscenti2',
+							'schafter5',
+							'schafter6',
+							'baller5',
+							'baller6',
+							'xls2',
+							'limo2'
+						},
+					},
+				},
 			},
+			getTargets = function(targets, round, cluster)
+				local vehicles = {}
+				for i = 1, round do
+					vehicles[i] = targets[1][math.random(#targets[1])]
+				end
+
+				return vehicles
+			end
 		},
 		['Lost MC'] = {
 			name = 'Lost MC',
@@ -150,13 +187,35 @@ Config = {
 
 			clusterSize = 0,
 			distance = {500, 1500},
-			escalation = 'repeat',
 
 			targetPeds = 'lost',
 			targetWeapons = {`WEAPON_ASSAULTRIFLE`, `WEAPON_COMPACTRIFLE`, `WEAPON_MICROSMG`, `WEAPON_SAWNOFFSHOTGUN`},
 			targets = {
-				{model = {'zombieb', 'hexer', 'diablous', 'innovation', 'daemon', 'slamvan2', 'gburrito2', 'lectro', 'sovereign', 'ratloader2'}},
+				{
+					allow = {
+						model = {
+							'zombieb',
+							'hexer',
+							'diablous',
+							'innovation',
+							'daemon',
+							'slamvan2',
+							'gburrito2',
+							'lectro',
+							'sovereign',
+							'ratloader2'
+						},
+					},
+				},
 			},
+			getTargets = function(targets, round, cluster)
+				local vehicles = {}
+				for i = 1, round do
+					vehicles[i] = targets[1][math.random(#targets[1])]
+				end
+
+				return vehicles
+			end
 		},
 	},
 }

@@ -1,35 +1,95 @@
-local table = lib.table
-local vehicleSets = {}
 local instances = {}
 
-function getTargets(mission, targets, round)
-	vehicleSets[mission] = vehicleSets[mission] or {}
+local function getTargets(targets, round, cluster)
 	local vehicles = {}
 	for i = 1, #targets do
-		local target = targets[i]
-		if type(target) == 'table' then
-			local vehicleSet = vehicleSets[mission][i]
-			if not vehicleSet then
-				local column, values = next(target)
-				vehicleSet = MySQL.query.await('SELECT model FROM vehicle_data WHERE ?? IN (?)', {column, values})
-				vehicleSets[mission][i] = vehicleSet
-			end
-			vehicles[i] = vehicleSet[math.random(#vehicleSet)]
-		elseif target == 'repeat' then
-			local vehicleSet
-			for j = 1, #targets do
-				vehicleSet = vehicleSets[mission][i - j]
-				if vehicleSet then
-					vehicles[i] = vehicleSet[math.random(#vehicleSet)]
-					break
-				end
-			end
-		elseif target == 'copy' then
-			vehicles[i] = table.deepclone(vehicles[i - 1])
-		end
+		vehicles[i] = targets[i][math.random(#targets[i])]
 	end
+
 	return vehicles
 end
+
+AddEventHandler('onResourceStart', function(resource)
+	if resource == GetCurrentResourceName() then
+		for k, v in pairs(Config.missions) do
+			v.getTargets = v.getTargets or getTargets
+			for i = 1, #v.targets do
+				local targetData = v.targets[i]
+				local targetPool = {}
+
+				for k, v in pairs(targetData.allow) do
+					targetPool[k] = {
+						allow = true,
+						data = v
+					}
+					if targetData.deny and targetData.deny[k] then
+						targetData.deny[k] = nil
+					end
+				end
+
+				if targetData.deny then
+					for k, v in pairs(targetData.deny) do
+						targetPool[k] = {
+							allow = false,
+							data = v
+						}
+					end
+				end
+
+				local query = {'SELECT * FROM vehicle_data', ' WHERE'}
+				local parameters = {}
+
+				for k2, v2 in pairs(targetPool) do
+					if k2 == 'price' or k2 == 'doors' or k2 == 'seats' then
+						if v2.allow then
+							query[#query + 1] = (' %s BETWEEN ? AND ?'):format(k2)
+							parameters[#parameters + 1] = v2.data[1]
+							parameters[#parameters + 1] = v2.data[2]
+						else
+							query[#query + 1] = (' %s NOT BETWEEN ? AND ?'):format(k2)
+							parameters[#parameters + 1] = v2.data[1]
+							parameters[#parameters + 1] = v2.data[2]
+						end
+					elseif type(v2.data) == 'table' then
+						if v2.allow then
+							if #v2.data > 1 then
+								query[#query + 1] = (' %s IN (?)'):format(k2)
+								parameters[#parameters + 1] = v2.data
+							elseif #v2.data > 0 then
+								query[#query + 1] = (' %s = ?'):format(k2)
+								parameters[#parameters + 1] = v2.data[1]
+							end
+						else
+							if #v2 > 1 then
+								query[#query + 1] = (' %s NOT IN (?)'):format(k2)
+								parameters[#parameters + 1] = v2.data
+							elseif #v2.data > 0 then
+								query[#query + 1] = (' %s != ?'):format(k2)
+								parameters[#parameters + 1] = v2.data[1]
+							end
+						end
+					elseif v2.allow then
+						query[#query + 1] = (' %s = ?'):format(k2)
+						parameters[#parameters + 1] = v2.data
+					else
+						query[#query + 1] = (' %s != ?'):format(k2)
+						parameters[#parameters + 1] = v2.data
+					end
+
+					if #query > 3 then
+						query[#query] = ' AND' .. query[#query]
+					end
+				end
+
+				if not next(parameters) then
+					query[2] = nil
+				end
+
+				v.targets[i] = MySQL.query.await(table.concat(query), parameters)
+			end
+		end
+	end
+end)
 
 RegisterServerEvent('brownThunder:nextRound', function(data)
 	local source = source
@@ -42,19 +102,9 @@ RegisterServerEvent('brownThunder:nextRound', function(data)
 	end
 
 	local round = data?.round or instance.round + 1
-	local missionData = table.deepclone(Config.missions[data?.mission or instance.mission])
+	local missionData = Config.missions[data?.mission or instance.mission]
 
-	if missionData.escalation and #missionData.targets < round then
-		for i = #missionData.targets + 1, round do
-			if missionData.clusterSize > 0 and (i - 1) % missionData.clusterSize == 0 then
-				missionData.targets[i] = table.deepclone(missionData.targets[1])
-			else
-				missionData.targets[i] = missionData.escalation
-			end
-		end
-	end
-
-	local targets = getTargets(missionData.name, missionData.targets, round)
+	local targets = missionData.getTargets(missionData.targets, round, missionData.clusterSize)
 
 	instance.round = round
 	instance.mission = missionData.name
