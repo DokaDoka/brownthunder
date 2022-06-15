@@ -125,6 +125,7 @@ RegisterServerEvent('brownThunder:endMission', function(kills)
 	instance.round = nil
 	instance.mission = nil
 	instance.vehicle = nil
+	instance.timestamp = nil
 end)
 
 RegisterNetEvent('ox:playerDeath', function(dead)
