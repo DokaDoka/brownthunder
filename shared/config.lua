@@ -116,6 +116,36 @@ Config = {
 		},
 	},
 	missions = {
+		['Armed'] = {
+			name = 'Armed',
+			description = 'Hunt a triplet of random targets',
+
+			clusterSize = 3,
+			distance = {500, 1500},
+
+			targetPeds = 'prisoners',
+			targetWeapons = {`WEAPON_ASSAULTRIFLE`, `WEAPON_COMPACTRIFLE`, `WEAPON_MICROSMG`, `WEAPON_SAWNOFFSHOTGUN`},
+			targets = {
+				{
+					allow = {
+						type = {
+							'automobile',
+							'bike',
+							'heli'
+						},
+						weapons = true
+					},
+				},
+			},
+			getTargets = function(targets, round, cluster)
+				local vehicles = {}
+				for i = 1, round do
+					vehicles[i] = targets[1][math.random(#targets[1])]
+				end
+
+				return vehicles
+			end
+		},
 		['Brown Thunder'] = {
 			name = 'Brown Thunder',
 			description = 'Hunt a triplet of random targets',
